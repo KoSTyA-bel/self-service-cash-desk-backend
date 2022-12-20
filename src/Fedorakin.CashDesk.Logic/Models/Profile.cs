@@ -1,0 +1,10 @@
+﻿namespace Fedorakin.CashDesk.Logic.Models;
+
+public class Profile
+{
+    public int Id { get; set; }
+
+    public int CardId { get; set; }
+
+    public Card? Card { get; set; }
+}
