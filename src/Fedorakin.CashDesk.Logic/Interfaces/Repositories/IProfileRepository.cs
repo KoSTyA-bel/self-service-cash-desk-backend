@@ -8,5 +8,5 @@ public interface IProfileRepository
 
     public Task UpdateProduct(Profile profile, CancellationToken cancellationToken);
 
-    public Task DeleteProfile(int id, CancellationToken cancellationToken);
+    public Task DeleteProfile(Profile profile, CancellationToken cancellationToken);
 }

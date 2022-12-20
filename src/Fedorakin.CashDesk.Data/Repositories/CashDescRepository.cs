@@ -1,30 +1,30 @@
-﻿using Fedorakin.CashDesk.Logic.Contexts;
-using Fedorakin.CashDesk.Logic.Interfaces.Repositories;
+﻿using Fedorakin.CashDesk.Logic.Interfaces.Repositories;
 using Fedorakin.CashDesk.Logic.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Fedorakin.CashDesk.Data.Repositories;
 
 public class CashDescRepository : ICashDescRepository
 {
-    private readonly DataContext _context;
+    private readonly DbSet<CashDesc> _cashDescs;
 
-    public CashDescRepository(DataContext context)
+    public CashDescRepository(DbSet<CashDesc> cashDescs)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
+        _cashDescs = cashDescs ?? throw new ArgumentNullException(nameof(cashDescs));
     }
 
     public Task CreateCashDesc(CashDesc cashDesc, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        return _cashDescs.AddAsync(cashDesc, cancellationToken).AsTask();
     }
 
-    public Task DeleteCashDesc(int id, CancellationToken cancellationToken)
+    public Task DeleteCashDesc(CashDesc cashDesc, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        return Task.FromResult(_cashDescs.Remove(cashDesc));
     }
 
     public Task UpdateCashDesc(CashDesc cashDesc, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        return Task.FromResult(_cashDescs.Update(cashDesc));
     }
 }

@@ -1,30 +1,31 @@
 ﻿using Fedorakin.CashDesk.Logic.Contexts;
 using Fedorakin.CashDesk.Logic.Interfaces.Repositories;
 using Fedorakin.CashDesk.Logic.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Fedorakin.CashDesk.Data.Repositories;
 
 public class CardRepository : ICardRepository
 {
-    private readonly DataContext _context;
+    private readonly DbSet<Card> _cards;
 
-    public CardRepository(DataContext context)
+    public CardRepository(DbSet<Card> cards)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
+        _cards = cards ?? throw new ArgumentNullException(nameof(cards));
     }
 
     public Task CreateCard(Card card, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        return _cards.AddAsync(card, cancellationToken).AsTask();
     }
 
-    public Task DeleteCard(int id, CancellationToken cancellationToken)
+    public Task DeleteCard(Card card, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        return Task.FromResult(_cards.Remove(card));
     }
 
     public Task UpdateCard(Card card, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        return Task.FromResult(_cards.Update(card));
     }
 }

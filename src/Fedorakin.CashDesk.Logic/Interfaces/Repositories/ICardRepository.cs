@@ -8,5 +8,5 @@ public interface ICardRepository
 
     public Task UpdateCard(Card card, CancellationToken cancellationToken);
 
-    public Task DeleteCard(int id, CancellationToken cancellationToken);
+    public Task DeleteCard(Card card, CancellationToken cancellationToken);
 }

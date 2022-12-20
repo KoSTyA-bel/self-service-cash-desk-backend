@@ -8,5 +8,5 @@ public interface ICashDescRepository
 
     public Task UpdateCashDesc(CashDesc cashDesc, CancellationToken cancellationToken);
 
-    public Task DeleteCashDesc(int id, CancellationToken cancellationToken);
+    public Task DeleteCashDesc(CashDesc cashDesc, CancellationToken cancellationToken);
 }

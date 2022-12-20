@@ -1,10 +1,11 @@
 ﻿using Fedorakin.CashDesk.Data.Configurations;
+using Fedorakin.CashDesk.Logic.Interfaces;
 using Fedorakin.CashDesk.Logic.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fedorakin.CashDesk.Logic.Contexts;
 
-public class DataContext : DbContext
+public class DataContext : DbContext, IDataContext
 {
 	public DataContext(DbContextOptions<DataContext> options)
 		: base(options)
@@ -15,6 +16,11 @@ public class DataContext : DbContext
     public DbSet<Card> Cards { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<CashDesc> CashDescs { get; set; }
+
+    public Task SaveChanges(CancellationToken cancellationToken)
+    {
+        return SaveChangesAsync(cancellationToken);
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

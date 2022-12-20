@@ -8,5 +8,5 @@ public interface IProductRepository
 
     public Task UpdateProduct(Product product, CancellationToken cancellationToken);
 
-    public Task DeleteProduct(int id, CancellationToken cancellationToken);
+    public Task DeleteProduct(Product product, CancellationToken cancellationToken);
 }

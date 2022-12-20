@@ -1,30 +1,31 @@
 ﻿using Fedorakin.CashDesk.Logic.Contexts;
 using Fedorakin.CashDesk.Logic.Interfaces.Repositories;
 using Fedorakin.CashDesk.Logic.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Fedorakin.CashDesk.Data.Repositories;
 
 public class ProductRepository : IProductRepository
 {
-    private readonly DataContext _context;
+    private readonly DbSet<Product> _products;
 
-    public ProductRepository(DataContext context)
+    public ProductRepository(DbSet<Product> products)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
+        _products = products ?? throw new ArgumentNullException(nameof(products));
     }
 
     public Task CreateProduct(Product product, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        return _products.AddAsync(product, cancellationToken).AsTask();
     }
 
-    public Task DeleteProduct(int id, CancellationToken cancellationToken)
+    public Task DeleteProduct(Product product, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        return Task.FromResult(_products.Remove(product));
     }
 
     public Task UpdateProduct(Product product, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        return Task.FromResult(_products.Update(product));
     }
 }

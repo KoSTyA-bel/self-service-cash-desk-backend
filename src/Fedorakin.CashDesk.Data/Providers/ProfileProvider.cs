@@ -7,16 +7,16 @@ namespace Fedorakin.CashDesk.Data.Providers;
 
 public class ProfileProvider : IProfileProvider
 {
-    private readonly DataContext _context;
+    private readonly DbSet<Profile> _profiles;
 
-    public ProfileProvider(DataContext context)
+    public ProfileProvider(DbSet<Profile> profiles)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
+        _profiles = profiles ?? throw new ArgumentNullException(nameof(profiles));
     }
 
-    public Task<Profile?> GetProdut(int id, CancellationToken cancellationToken)
+    public Task<Profile?> GetProfile(int id, CancellationToken cancellationToken)
     {
-        return _context.Profiles.FirstOrDefaultAsync(profile => profile.Id == id);
+        return _profiles.FirstOrDefaultAsync(profile => profile.Id == id, cancellationToken);
     }
 
     public Task<IEnumerable<Profile>> GetRange(int page, int pageSize, CancellationToken cancellationToken)
