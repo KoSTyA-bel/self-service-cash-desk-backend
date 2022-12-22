@@ -19,7 +19,7 @@ public static class DataExtensions
             .AddScoped(provider =>
             {
                 var service = provider.GetService(typeof(DataContext)) as DataContext;
-                return service.Profiles;
+                return service.People;
             })
             .AddScoped(provider =>
             {
@@ -34,7 +34,27 @@ public static class DataExtensions
             .AddScoped(provider =>
             {
                 var service = provider.GetService(typeof(DataContext)) as DataContext;
-                return service.CashDescs;
+                return service.SelfCheckouts;
+            })
+            .AddScoped(provider =>
+            {
+                var service = provider.GetService(typeof(DataContext)) as DataContext;
+                return service.Checks;
+            })
+            .AddScoped(provider =>
+            {
+                var service = provider.GetService(typeof(DataContext)) as DataContext;
+                return service.Roles;
+            })
+            .AddScoped(provider =>
+            {
+                var service = provider.GetService(typeof(DataContext)) as DataContext;
+                return service.Carts;
+            })
+            .AddScoped(provider =>
+            {
+                var service = provider.GetService(typeof(DataContext)) as DataContext;
+                return service.Stocks;
             });
 
         services

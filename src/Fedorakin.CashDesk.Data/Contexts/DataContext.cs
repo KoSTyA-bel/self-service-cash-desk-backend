@@ -12,10 +12,21 @@ public class DataContext : DbContext, IDataContext
 	{
 	}
 
-    public DbSet<Person> Profiles { get; set; }
+    public DbSet<Person> People { get; set; }
+
     public DbSet<Card> Cards { get; set; }
+
     public DbSet<Product> Products { get; set; }
-    public DbSet<CashDesc> CashDescs { get; set; }
+
+    public DbSet<SelfCheckout> SelfCheckouts { get; set; }
+
+    public DbSet<Cart> Carts { get; set; }
+
+    public DbSet<Role> Roles { get; set; }
+
+    public DbSet<Stock> Stocks { get; set; }
+
+    public DbSet<Check> Checks { get; set; }
 
     public Task SaveChanges(CancellationToken cancellationToken)
     {
@@ -24,10 +35,14 @@ public class DataContext : DbContext, IDataContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfiguration(new ProfileConfiguration());
+        modelBuilder.ApplyConfiguration(new PeopleConfiguration());
         modelBuilder.ApplyConfiguration(new CardConfiguration());
-        modelBuilder.ApplyConfiguration(new CashDescConfiguration());
+        modelBuilder.ApplyConfiguration(new SelfCheckoutConfiguration());
         modelBuilder.ApplyConfiguration(new ProductConfiguration());
+        modelBuilder.ApplyConfiguration(new StockConfiguration());
+        modelBuilder.ApplyConfiguration(new RoleConfiguration());
+        modelBuilder.ApplyConfiguration(new CheckConfiguration());
+        modelBuilder.ApplyConfiguration(new CartConfiguration());
 
         base.OnModelCreating(modelBuilder);
     }
