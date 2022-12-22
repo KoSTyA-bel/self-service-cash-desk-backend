@@ -1,4 +1,8 @@
+using Fedorakin.CashDesk.Data;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDataBase("Server=(localdb)\\mssqllocaldb;Database=helloappdb;Trusted_Connection=True;");
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

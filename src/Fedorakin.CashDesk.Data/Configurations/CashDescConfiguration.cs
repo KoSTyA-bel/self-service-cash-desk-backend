@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Fedorakin.CashDesk.Data.Configurations;
 
-public class CashDescConfiguration : IEntityTypeConfiguration<CashDesc>
+public class CashDescConfiguration : IEntityTypeConfiguration<SelfCheckout>
 {
-    public void Configure(EntityTypeBuilder<CashDesc> builder)
+    public void Configure(EntityTypeBuilder<SelfCheckout> builder)
     {
         builder.HasKey(desc => desc.Id);
 
-        builder.Property(desc => desc.IsFree).IsRequired();
+        builder.Property(desc => desc.IsBusy).IsRequired();
     }
 }

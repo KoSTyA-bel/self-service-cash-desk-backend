@@ -12,7 +12,7 @@ public class DataContext : DbContext, IDataContext
 	{
 	}
 
-    public DbSet<Profile> Profiles { get; set; }
+    public DbSet<Person> Profiles { get; set; }
     public DbSet<Card> Cards { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<CashDesc> CashDescs { get; set; }

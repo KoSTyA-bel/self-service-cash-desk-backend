@@ -1,8 +1,8 @@
 ﻿namespace Fedorakin.CashDesk.Logic.Models;
 
-public class CashDesc
+public class Role
 {
     public int Id { get; set; }
 
-    public bool IsFree { get; set; } = true;
+    public string Name { get; set; } = string.Empty;
 }

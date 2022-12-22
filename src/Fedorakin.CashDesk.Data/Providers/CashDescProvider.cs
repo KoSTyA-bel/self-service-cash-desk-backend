@@ -7,19 +7,19 @@ namespace Fedorakin.CashDesk.Data.Providers;
 
 public class CashDescProvider : ICashDescProvider
 {
-    private readonly DbSet<CashDesc> _cashDescs;
+    private readonly DbSet<SelfCheckout> _cashDescs;
 
-    public CashDescProvider(DbSet<CashDesc> cashDescs)
+    public CashDescProvider(DbSet<SelfCheckout> cashDescs)
     {
         _cashDescs = cashDescs ?? throw new ArgumentNullException(nameof(cashDescs));
     }
 
-    public Task<CashDesc?> GetCashDesc(int id, CancellationToken cancellationToken)
+    public Task<SelfCheckout?> GetCashDesc(int id, CancellationToken cancellationToken)
     {
         return _cashDescs.FirstOrDefaultAsync(cashDesc => cashDesc.Id == id, cancellationToken);
     }
 
-    public Task<IEnumerable<CashDesc>> GetRange(int page, int pageSize, CancellationToken cancellationToken)
+    public Task<IEnumerable<SelfCheckout>> GetRange(int page, int pageSize, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }

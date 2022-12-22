@@ -15,4 +15,9 @@
     <Folder Include="Controllers\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Fedorakin.CashDesk.Data\Fedorakin.CashDesk.Data.csproj" />
+    <ProjectReference Include="..\Fedorakin.CashDesk.Logic\Fedorakin.CashDesk.Logic.csproj" />
+  </ItemGroup>
+
 </Project>

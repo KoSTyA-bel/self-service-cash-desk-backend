@@ -4,9 +4,9 @@ namespace Fedorakin.CashDesk.Logic.Interfaces.Repositories;
 
 public interface IProfileRepository
 {
-    public Task CreateProduct(Profile profile, CancellationToken cancellationToken);
+    public Task CreateProduct(Person profile, CancellationToken cancellationToken);
 
-    public Task UpdateProduct(Profile profile, CancellationToken cancellationToken);
+    public Task UpdateProduct(Person profile, CancellationToken cancellationToken);
 
-    public Task DeleteProfile(Profile profile, CancellationToken cancellationToken);
+    public Task DeleteProfile(Person profile, CancellationToken cancellationToken);
 }

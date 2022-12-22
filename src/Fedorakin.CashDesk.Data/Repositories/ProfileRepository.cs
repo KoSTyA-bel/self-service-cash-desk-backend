@@ -6,24 +6,24 @@ namespace Fedorakin.CashDesk.Data.Repositories;
 
 public class ProfileRepository : IProfileRepository
 {
-    private readonly DbSet<Profile> _profiles;
+    private readonly DbSet<Person> _profiles;
 
-    public ProfileRepository(DbSet<Profile> profiles)
+    public ProfileRepository(DbSet<Person> profiles)
     {
         _profiles = profiles ?? throw new ArgumentNullException(nameof(profiles));
     }
 
-    public Task CreateProduct(Profile profile, CancellationToken cancellationToken)
+    public Task CreateProduct(Person profile, CancellationToken cancellationToken)
     {
         return _profiles.AddAsync(profile, cancellationToken).AsTask();
     }
 
-    public Task DeleteProfile(Profile profile, CancellationToken cancellationToken)
+    public Task DeleteProfile(Person profile, CancellationToken cancellationToken)
     {
         return Task.FromResult(_profiles.Remove(profile));
     }
 
-    public Task UpdateProduct(Profile profile, CancellationToken cancellationToken)
+    public Task UpdateProduct(Person profile, CancellationToken cancellationToken)
     {
         return Task.FromResult(_profiles.Update(profile));
     }
