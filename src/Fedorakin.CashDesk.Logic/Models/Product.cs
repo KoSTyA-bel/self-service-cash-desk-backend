@@ -6,6 +6,8 @@ public class Product
 
     public string Name { get; set; } = string.Empty;
 
+    public string Desciprion { get; set; } = string.Empty;
+
     public double Price { get; set; }
 
     public double Weight { get; set; }

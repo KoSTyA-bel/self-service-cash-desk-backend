@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Fedorakin.CashDesk.Data.Configurations;
 
-public class ProfileConfiguration : IEntityTypeConfiguration<Person>
+public class PeopleConfiguration : IEntityTypeConfiguration<Person>
 {
     public void Configure(EntityTypeBuilder<Person> builder)
     {
-        builder.HasKey(profile => profile.Id);
-        builder.Property(profile => profile.CardId).IsRequired();
-        builder.HasOne<Card>();
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.FullName).HasMaxLength(50);
+        builder.HasOne<Role>();
     }
 }

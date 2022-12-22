@@ -6,7 +6,7 @@ public class Cart
 
     public int PoductId { get; set; }
 
-    public Product? Product { get; set; }
+    public List<Product> Products { get; set; } = new();
 
     public Guid Number { get; set; }
 
