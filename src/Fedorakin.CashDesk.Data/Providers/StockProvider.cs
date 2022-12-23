@@ -4,10 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fedorakin.CashDesk.Data.Providers;
 
-public class ProfileProvider : BaseProvider<Profile>, IProfileProvider
+public class StockProvider : BaseProvider<Stock>, IStockProvider
 {
-    public ProfileProvider(DbSet<Profile> profiles)
-        : base(profiles)
-    {
-    }
+	public StockProvider(DbSet<Stock> stocks)
+		: base(stocks)
+	{
+	}
 }

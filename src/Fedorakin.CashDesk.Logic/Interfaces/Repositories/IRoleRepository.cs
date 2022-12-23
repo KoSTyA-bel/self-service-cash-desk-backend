@@ -2,6 +2,6 @@
 
 namespace Fedorakin.CashDesk.Logic.Interfaces.Repositories;
 
-public interface ICardRepository : IBaseRepository<Card>
+public interface IRoleRepository : IBaseRepository<Role>
 {
 }

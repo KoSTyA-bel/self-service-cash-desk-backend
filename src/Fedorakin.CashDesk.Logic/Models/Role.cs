@@ -1,6 +1,8 @@
-﻿namespace Fedorakin.CashDesk.Logic.Models;
+﻿using Fedorakin.CashDesk.Logic.Interfaces;
 
-public class Role
+namespace Fedorakin.CashDesk.Logic.Models;
+
+public class Role : BaseEntity
 {
     public int Id { get; set; }
 

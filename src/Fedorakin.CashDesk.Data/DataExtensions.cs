@@ -11,6 +11,8 @@ namespace Fedorakin.CashDesk.Data;
 
 public static class DataExtensions
 {
+    // TODO
+    // Think of a way to get rid of repetition
     public static IServiceCollection AddDataBase(this IServiceCollection services, string connectionString)
     {
         services.AddDbContextPool<DataContext>(options => options.UseSqlServer(connectionString));
@@ -19,7 +21,7 @@ public static class DataExtensions
             .AddScoped(provider =>
             {
                 var service = provider.GetService(typeof(DataContext)) as DataContext;
-                return service.People;
+                return service.Profiles;
             })
             .AddScoped(provider =>
             {
@@ -63,8 +65,8 @@ public static class DataExtensions
             .AddScoped<IProfileProvider, ProfileProvider>()
             .AddScoped<IProductProvider, ProductProvider>()
             .AddScoped<IProductRepository, ProductRepository>()
-            .AddScoped<ICashDescProvider, CashDescProvider>()
-            .AddScoped<ICashDescRepository, CashDescRepository>()
+            .AddScoped<ISelfCheckoutProvider, SelfCheckoutProvider>()
+            .AddScoped<ISelfCheckoutRepository, SelfCheckoutRepository>()
             .AddScoped<ICardProvider, CardProvider>()
             .AddScoped<ICardRepository, CardRepository>();
 

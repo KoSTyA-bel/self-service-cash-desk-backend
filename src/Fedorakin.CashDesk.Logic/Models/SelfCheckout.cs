@@ -1,6 +1,8 @@
-﻿namespace Fedorakin.CashDesk.Logic.Models;
+﻿using Fedorakin.CashDesk.Logic.Interfaces;
 
-public class SelfCheckout
+namespace Fedorakin.CashDesk.Logic.Models;
+
+public class SelfCheckout : BaseEntity
 {
     public int Id { get; set; }
 

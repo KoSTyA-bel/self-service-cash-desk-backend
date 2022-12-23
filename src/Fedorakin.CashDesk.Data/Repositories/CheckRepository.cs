@@ -4,10 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fedorakin.CashDesk.Data.Repositories;
 
-public class ProfileRepository : BaseRepository<Profile>, IProfileRepository
+public class CheckRepository : BaseRepository<Check>, ICheckRepository
 {
-    public ProfileRepository(DbSet<Profile> profiles)
-        : base(profiles)
-    {
-    }
+	public CheckRepository(DbSet<Check> checks)
+		: base(checks)
+	{
+	}
 }

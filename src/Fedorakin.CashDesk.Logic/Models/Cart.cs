@@ -1,6 +1,8 @@
-﻿namespace Fedorakin.CashDesk.Logic.Models;
+﻿using Fedorakin.CashDesk.Logic.Interfaces;
 
-public class Cart
+namespace Fedorakin.CashDesk.Logic.Models;
+
+public class Cart : BaseEntity
 {
     public int Id { get; set; }
 

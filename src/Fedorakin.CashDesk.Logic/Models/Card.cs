@@ -1,6 +1,8 @@
-﻿namespace Fedorakin.CashDesk.Logic.Models;
+﻿using Fedorakin.CashDesk.Logic.Interfaces;
 
-public class Card
+namespace Fedorakin.CashDesk.Logic.Models;
+
+public class Card : BaseEntity
 {
     public int Id { get; set; }
 
@@ -10,7 +12,7 @@ public class Card
 
     public double Discount { get; set; }
 
-    public int PersonId { get; set; }
+    public int ProfileId { get; set; }
 
-    public Person? Person { get; set; }
+    public Profile? Person { get; set; }
 }

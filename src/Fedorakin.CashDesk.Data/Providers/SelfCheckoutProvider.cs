@@ -5,11 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fedorakin.CashDesk.Data.Providers;
 
-public class ProductProvider : BaseProvider<Product>, IProductProvider
+public class SelfCheckoutProvider : BaseProvider<SelfCheckout>, ISelfCheckoutProvider
 {
-
-    public ProductProvider(DbSet<Product> products)
-        : base(products)
+    public SelfCheckoutProvider(DbSet<SelfCheckout> cashDescs)
+        : base(cashDescs)
     {
     }
 }

@@ -2,6 +2,6 @@
 
 namespace Fedorakin.CashDesk.Logic.Interfaces.Providers;
 
-public interface IProfileProvider : IBaseProvider<Profile>
+public interface ISelfCheckoutProvider : IBaseProvider<SelfCheckout>
 {
 }

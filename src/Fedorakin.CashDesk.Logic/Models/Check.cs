@@ -1,6 +1,8 @@
-﻿namespace Fedorakin.CashDesk.Logic.Models;
+﻿using Fedorakin.CashDesk.Logic.Interfaces;
 
-public class Check
+namespace Fedorakin.CashDesk.Logic.Models;
+
+public class Check : BaseEntity
 {
     public int Id { get; set; }
 

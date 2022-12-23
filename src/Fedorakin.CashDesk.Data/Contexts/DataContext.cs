@@ -12,7 +12,7 @@ public class DataContext : DbContext, IDataContext
 	{
 	}
 
-    public DbSet<Person> People { get; set; }
+    public DbSet<Profile> Profiles { get; set; }
 
     public DbSet<Card> Cards { get; set; }
 
@@ -35,7 +35,7 @@ public class DataContext : DbContext, IDataContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfiguration(new PeopleConfiguration());
+        modelBuilder.ApplyConfiguration(new ProfileConfiguration());
         modelBuilder.ApplyConfiguration(new CardConfiguration());
         modelBuilder.ApplyConfiguration(new SelfCheckoutConfiguration());
         modelBuilder.ApplyConfiguration(new ProductConfiguration());

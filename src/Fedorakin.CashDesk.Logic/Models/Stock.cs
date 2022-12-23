@@ -1,6 +1,8 @@
-﻿namespace Fedorakin.CashDesk.Logic.Models;
+﻿using Fedorakin.CashDesk.Logic.Interfaces;
 
-public class Stock
+namespace Fedorakin.CashDesk.Logic.Models;
+
+public class Stock : BaseEntity
 {
     public int Id { get; set; }
 
