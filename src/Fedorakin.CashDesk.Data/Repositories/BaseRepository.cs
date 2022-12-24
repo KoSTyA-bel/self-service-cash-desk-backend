@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fedorakin.CashDesk.Data.Repositories;
 
-public abstract class BaseRepository<T> : IBaseRepository<T> where T : class
+public abstract class BaseRepository<T> : IBaseRepository<T> where T : BaseEntity
 {
     protected DbSet<T> _data;
 

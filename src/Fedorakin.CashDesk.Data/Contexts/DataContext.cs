@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fedorakin.CashDesk.Logic.Contexts;
 
-public class DataContext : DbContext, IDataContext
+public class DataContext : DbContext
 {
 	public DataContext(DbContextOptions<DataContext> options)
 		: base(options)
@@ -27,11 +27,6 @@ public class DataContext : DbContext, IDataContext
     public DbSet<Stock> Stocks { get; set; }
 
     public DbSet<Check> Checks { get; set; }
-
-    public Task SaveChanges(CancellationToken cancellationToken)
-    {
-        return SaveChangesAsync(cancellationToken);
-    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

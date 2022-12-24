@@ -1,4 +1,5 @@
-﻿using Fedorakin.CashDesk.Data.Providers;
+﻿using Fedorakin.CashDesk.Data.Contexts;
+using Fedorakin.CashDesk.Data.Providers;
 using Fedorakin.CashDesk.Data.Repositories;
 using Fedorakin.CashDesk.Logic.Contexts;
 using Fedorakin.CashDesk.Logic.Interfaces;
@@ -60,7 +61,7 @@ public static class DataExtensions
             });
 
         services
-            .AddScoped<IDataContext, DataContext>()
+            .AddScoped<IUnitOfWork, UnitOfWork>()
             .AddScoped<IProfileRepository, ProfileRepository>()
             .AddScoped<IProfileProvider, ProfileProvider>()
             .AddScoped<IProductProvider, ProductProvider>()

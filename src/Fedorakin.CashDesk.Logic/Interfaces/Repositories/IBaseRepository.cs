@@ -1,6 +1,8 @@
-﻿namespace Fedorakin.CashDesk.Logic.Interfaces.Repositories;
+﻿using Fedorakin.CashDesk.Logic.Models;
 
-public interface IBaseRepository<T> where T : class
+namespace Fedorakin.CashDesk.Logic.Interfaces.Repositories;
+
+public interface IBaseRepository<T> where T : BaseEntity
 {
     public Task Create(T entity, CancellationToken cancellationToken);
 
