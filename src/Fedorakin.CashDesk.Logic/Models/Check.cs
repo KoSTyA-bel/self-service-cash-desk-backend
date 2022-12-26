@@ -14,11 +14,9 @@ public class Check : BaseEntity
 
     public DateTime Date { get; set; }
 
-    public int CartId { get; set; }
+    public Guid CartNumber { get; set; }
 
-    public Cart? Cart { get; set; }
-
-    public int? CardId { get; set; }
+    public int CardId { get; set; }
 
     public Card? Card { get; set; }
 

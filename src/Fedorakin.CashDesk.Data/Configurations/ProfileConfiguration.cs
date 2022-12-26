@@ -10,6 +10,5 @@ public class ProfileConfiguration : IEntityTypeConfiguration<Profile>
     {
         builder.HasKey(x => x.Id);
         builder.Property(x => x.FullName).HasMaxLength(50);
-        builder.HasOne<Role>();
     }
 }

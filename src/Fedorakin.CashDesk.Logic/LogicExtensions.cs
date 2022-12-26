@@ -9,7 +9,7 @@ namespace Fedorakin.CashDesk.Logic;
 
 public static class LogicExtensions
 {
-    public static IServiceCollection AddServices(this IServiceCollection services, string connectionString)
+    public static IServiceCollection AddServices(this IServiceCollection services)
     {
         services
             .AddScoped<IProductService, ProductService>()

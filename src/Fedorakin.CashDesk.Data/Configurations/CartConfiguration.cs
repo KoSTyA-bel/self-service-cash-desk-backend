@@ -9,9 +9,9 @@ public class CartConfiguration : IEntityTypeConfiguration<Cart>
     public void Configure(EntityTypeBuilder<Cart> builder)
     {
         builder.HasKey(x => x.Id);
-        builder.HasMany<Product>();
         builder.Property(x => x.Price).IsRequired();
         builder.Property(x => x.Date).IsRequired();
         builder.Property(x => x.Number).IsRequired();
+        builder.HasMany(x => x.Products).WithMany();
     }
 }

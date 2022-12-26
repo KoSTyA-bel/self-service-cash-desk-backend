@@ -14,5 +14,5 @@ public class Card : BaseEntity
 
     public int ProfileId { get; set; }
 
-    public Profile? Person { get; set; }
+    public Profile? Profile { get; set; }
 }

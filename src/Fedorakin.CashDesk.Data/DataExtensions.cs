@@ -68,8 +68,16 @@ public static class DataExtensions
             .AddScoped<IProductRepository, ProductRepository>()
             .AddScoped<ISelfCheckoutProvider, SelfCheckoutProvider>()
             .AddScoped<ISelfCheckoutRepository, SelfCheckoutRepository>()
+            .AddScoped<IStockProvider, StockProvider>()
+            .AddScoped<IStockRepository, StockRepository>()
+            .AddScoped<IRoleRepository, RoleRepository>()
+            .AddScoped<IRoleProvider, RoleProvider>()
             .AddScoped<ICardProvider, CardProvider>()
-            .AddScoped<ICardRepository, CardRepository>();
+            .AddScoped<ICardRepository, CardRepository>()
+            .AddScoped<ICartProvider, CartProvider>()
+            .AddScoped<ICartRepository, CartRepository>()
+            .AddScoped<ICheckProvider, CheckProvider>()
+            .AddScoped<ICheckRepository, CheckRepository>();
 
         return services;
     }

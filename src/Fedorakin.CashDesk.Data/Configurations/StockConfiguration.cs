@@ -10,6 +10,6 @@ public class StockConfiguration : IEntityTypeConfiguration<Stock>
     {
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Count).IsRequired();
-        builder.HasOne<Product>();
+        builder.HasOne(x => x.Product).WithOne().HasForeignKey(nameof(Stock), "ProductId").IsRequired();
     }
 }

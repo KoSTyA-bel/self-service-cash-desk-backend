@@ -1,8 +1,14 @@
 using Fedorakin.CashDesk.Data;
+using Fedorakin.CashDesk.Logic;
+using Fedorakin.CashDesk.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDataBase("Server=(localdb)\\mssqllocaldb;Database=helloappdb;Trusted_Connection=True;");
+builder.Services.AddDataBase("Data Source=(localdb)\\MyInstance;Database=myDataBase");
+
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+builder.Services.AddServices();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

@@ -12,9 +12,7 @@ public class CheckConfiguration : IEntityTypeConfiguration<Check>
         builder.Property(x => x.Total).IsRequired();
         builder.Property(x => x.Discount).IsRequired();
         builder.Property(x => x.Amount).IsRequired();
-        builder.HasOne<Cart>();
-        builder.HasOne<SelfCheckout>();
-        builder.HasOne<Card>();
-        builder.Property(x => x.CardId).IsRequired(false);
+        builder.HasOne<Cart>().WithOne().HasPrincipalKey<Cart>(x => x.Number).IsRequired();
+        builder.HasOne(x => x.Card).WithMany().IsRequired(false);
     }
 }
