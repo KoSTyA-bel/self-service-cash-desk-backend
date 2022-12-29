@@ -12,4 +12,9 @@ public class ProductProvider : BaseProvider<Product>, IProductProvider
         : base(products)
     {
     }
+
+    public override Task<Product?> Get(int id, CancellationToken cancellationToken)
+    {
+        return _data.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
 }

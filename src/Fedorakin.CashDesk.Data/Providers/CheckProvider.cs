@@ -10,4 +10,13 @@ public class CheckProvider: BaseProvider<Check>, ICheckProvider
 		: base(checks)
 	{
 	}
+
+    public override Task<Check?> Get(int id, CancellationToken cancellationToken)
+    {
+        return _data
+            .Where(x => x.Id == id)
+            .Include(x => x.Card)
+            .Include(x => x.SelfCheckout)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 }

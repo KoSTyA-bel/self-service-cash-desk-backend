@@ -10,4 +10,12 @@ public class CartProvider : BaseProvider<Cart>, ICartProvider
 		: base(carts)
 	{
 	}
+
+    public override Task<Cart?> Get(int id, CancellationToken cancellationToken)
+    {
+        return _data
+            .Where(x => x.Id == id)
+            .Include(x => x.Products)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 }

@@ -10,4 +10,13 @@ public class CardProvider : BaseProvider<Card>, ICardProvider
         : base(cards)
     {
     }
+
+    public override Task<Card?> Get(int id, CancellationToken cancellationToken)
+    {
+        return _data
+            .Where(x => x.Id == id)
+            .Include(x => x.Profile)
+            .ThenInclude(x => x.Role)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 }

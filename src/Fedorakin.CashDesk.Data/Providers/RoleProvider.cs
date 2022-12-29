@@ -10,4 +10,9 @@ public class RoleProvider : BaseProvider<Role>, IRoleProvider
 		: base(roles)
 	{
 	}
+
+    public override Task<Role?> Get(int id, CancellationToken cancellationToken)
+    {
+       return _data.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
 }

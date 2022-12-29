@@ -1,6 +1,6 @@
 ﻿using Fedorakin.CashDesk.Logic.Interfaces.Services;
 using Fedorakin.CashDesk.Logic.Models;
-using Fedorakin.CashDesk.Web.View;
+using Fedorakin.CashDesk.Web.Requests.Profile;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
@@ -19,7 +19,7 @@ public class ProfileController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProfileView>>> Get(int? page, int? pageSize)
+    public async Task<ActionResult<IEnumerable<Profile>>> Get(int? page, int? pageSize)
     {
         var profiles = await _service.GetRange(page.Value, pageSize.Value, CancellationToken.None);
 
@@ -28,13 +28,11 @@ public class ProfileController : ControllerBase
             return NotFound();
         }
 
-        var mappedProfiles = _mapper.Map<List<ProfileView>>(profiles);
-
-        return Ok(mappedProfiles);
+        return Ok(profiles);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<ProfileView>> Get(int id)
+    public async Task<ActionResult<Profile>> Get(int id)
     {
         var profile = await _service.Get(id, CancellationToken.None);
 
@@ -43,15 +41,13 @@ public class ProfileController : ControllerBase
             return NotFound();
         }
 
-        var mappedProfile = _mapper.Map<RoleView>(profile);
-
-        return Ok(mappedProfile);
+        return Ok(profile);
     }
 
     [HttpPost]
-    public async Task<ActionResult> Post([FromBody] ProfileView profileView)
+    public async Task<ActionResult> Post([FromBody] CreateProfileRequest request)
     {
-        var profile = _mapper.Map<Profile>(profileView);
+        var profile = _mapper.Map<Profile>(request);
 
         await _service.Create(profile, CancellationToken.None);
 
@@ -59,9 +55,9 @@ public class ProfileController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] ProfileView profileView)
+    public async Task<ActionResult> Put(int id, [FromBody] UpdateProfileRequest request)
     {
-        var profile = _mapper.Map<Profile>(profileView);
+        var profile = _mapper.Map<Profile>(request);
         profile.Id = id;
 
         await _service.Update(profile, CancellationToken.None);

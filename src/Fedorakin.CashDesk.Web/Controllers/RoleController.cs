@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
+using Azure.Core;
 using Fedorakin.CashDesk.Logic.Interfaces.Services;
 using Fedorakin.CashDesk.Logic.Models;
-using Fedorakin.CashDesk.Web.View;
+using Fedorakin.CashDesk.Web.Requests.Role;
 using Microsoft.AspNetCore.Mvc;
-using System.Data;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
 
@@ -21,7 +21,7 @@ public class RoleController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<RoleView>>> Get(int? page, int? pageSize)
+    public async Task<ActionResult<IEnumerable<Role>>> Get(int? page, int? pageSize)
     {
         var roles = await _service.GetRange(page.Value, pageSize.Value, CancellationToken.None);
 
@@ -30,7 +30,7 @@ public class RoleController : ControllerBase
             return NotFound();
         }
 
-        var mappedRoles = _mapper.Map<List<RoleView>>(roles);
+        var mappedRoles = _mapper.Map<List<Role>>(roles);
 
         return Ok(roles);
     }
@@ -45,15 +45,13 @@ public class RoleController : ControllerBase
             return NotFound();
         }
 
-        var mappedRole = _mapper.Map<RoleView>(role);
-
-        return Ok(mappedRole);
+        return Ok(role);
     }
 
     [HttpPost]
-    public async Task<ActionResult> Post([FromBody] RoleView roleView)
+    public async Task<ActionResult> Post([FromBody] CreateRoleRequest request)
     {
-        var role = _mapper.Map<Role>(roleView);
+        var role = _mapper.Map<Role>(request);
         
         await _service.Create(role, CancellationToken.None);
 
@@ -61,9 +59,9 @@ public class RoleController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] RoleView roleView)
+    public async Task<ActionResult> Put(int id, [FromBody] UpdateRoleRequest request)
     {
-        var role = _mapper.Map<Role>(roleView);
+        var role = _mapper.Map<Role>(request);
         role.Id = id;
 
         await _service.Update(role, CancellationToken.None);

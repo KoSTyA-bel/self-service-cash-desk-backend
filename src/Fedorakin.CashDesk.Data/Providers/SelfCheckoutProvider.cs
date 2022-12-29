@@ -11,4 +11,9 @@ public class SelfCheckoutProvider : BaseProvider<SelfCheckout>, ISelfCheckoutPro
         : base(cashDescs)
     {
     }
+
+    public override Task<SelfCheckout?> Get(int id, CancellationToken cancellationToken)
+    {
+        return _data.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
 }

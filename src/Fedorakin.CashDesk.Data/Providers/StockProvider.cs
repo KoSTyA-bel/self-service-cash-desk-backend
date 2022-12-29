@@ -10,4 +10,12 @@ public class StockProvider : BaseProvider<Stock>, IStockProvider
 		: base(stocks)
 	{
 	}
+
+    public override Task<Stock?> Get(int id, CancellationToken cancellationToken)
+    {
+        return _data
+            .Where(x => x.Id == id)
+            .Include(x => x.Product)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 }

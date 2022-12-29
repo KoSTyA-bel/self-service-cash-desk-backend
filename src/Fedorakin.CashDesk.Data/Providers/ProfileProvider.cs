@@ -10,4 +10,12 @@ public class ProfileProvider : BaseProvider<Profile>, IProfileProvider
         : base(profiles)
     {
     }
+
+    public override Task<Profile?> Get(int id, CancellationToken cancellationToken)
+    {
+        return _data
+            .Where(x => x.Id == id)
+            .Include(x => x.Role)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 }
