@@ -1,6 +1,6 @@
-﻿namespace Fedorakin.CashDesk.Web.Requests.Profile;
+﻿namespace Fedorakin.CashDesk.Web.Contracts.Requests.Profile;
 
-public class UpdateProfileRequest
+public class CreateProfileRequest
 {
     public string FullName { get; set; } = string.Empty;
 

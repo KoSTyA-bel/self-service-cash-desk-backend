@@ -11,11 +11,15 @@ public class StockProvider : BaseProvider<Stock>, IStockProvider
 	{
 	}
 
-    public override Task<Stock?> Get(int id, CancellationToken cancellationToken)
+    public Task<Stock?> GetStockForProduct(int productId, CancellationToken cancellationToken)
     {
-        return _data
-            .Where(x => x.Id == id)
-            .Include(x => x.Product)
-            .FirstOrDefaultAsync(cancellationToken);
+        return IncludeNavigationEntities(_data)
+            .FirstOrDefaultAsync(x => x.ProductId == productId, cancellationToken);
+    }
+
+    protected override IQueryable<Stock> IncludeNavigationEntities(IQueryable<Stock> data)
+    {
+        return data
+            .Include(x => x.Product);
     }
 }

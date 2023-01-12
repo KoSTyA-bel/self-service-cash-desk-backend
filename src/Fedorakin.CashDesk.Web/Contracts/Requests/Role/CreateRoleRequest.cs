@@ -1,4 +1,4 @@
-﻿namespace Fedorakin.CashDesk.Web.Requests.Role;
+﻿namespace Fedorakin.CashDesk.Web.Contracts.Requests.Role;
 
 public class CreateRoleRequest
 {

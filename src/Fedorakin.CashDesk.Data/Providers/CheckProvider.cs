@@ -11,12 +11,10 @@ public class CheckProvider: BaseProvider<Check>, ICheckProvider
 	{
 	}
 
-    public override Task<Check?> Get(int id, CancellationToken cancellationToken)
+    protected override IQueryable<Check> IncludeNavigationEntities(IQueryable<Check> data)
     {
-        return _data
-            .Where(x => x.Id == id)
+        return data
             .Include(x => x.Card)
-            .Include(x => x.SelfCheckout)
-            .FirstOrDefaultAsync(cancellationToken);
+            .Include(x => x.SelfCheckout);
     }
 }

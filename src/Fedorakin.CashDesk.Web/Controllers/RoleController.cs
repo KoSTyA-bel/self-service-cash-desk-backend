@@ -2,7 +2,8 @@
 using Azure.Core;
 using Fedorakin.CashDesk.Logic.Interfaces.Services;
 using Fedorakin.CashDesk.Logic.Models;
-using Fedorakin.CashDesk.Web.Requests.Role;
+using Fedorakin.CashDesk.Web.Contracts.Requests.Role;
+using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
@@ -21,7 +22,7 @@ public class RoleController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Role>>> Get(int? page, int? pageSize)
+    public async Task<IActionResult> Get(int? page, int? pageSize)
     {
         var roles = await _service.GetRange(page.Value, pageSize.Value, CancellationToken.None);
 
@@ -30,13 +31,13 @@ public class RoleController : ControllerBase
             return NotFound();
         }
 
-        var mappedRoles = _mapper.Map<List<Role>>(roles);
+        var response = _mapper.Map<List<RoleResponse>>(roles);
 
-        return Ok(roles);
+        return Ok(response);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<Role>> Get(int id)
+    public async Task<IActionResult> Get(int id)
     {
         var role = await _service.Get(id, CancellationToken.None);
 
@@ -45,11 +46,13 @@ public class RoleController : ControllerBase
             return NotFound();
         }
 
-        return Ok(role);
+        var response = _mapper.Map<RoleResponse>(role);
+
+        return Ok(response);
     }
 
     [HttpPost]
-    public async Task<ActionResult> Post([FromBody] CreateRoleRequest request)
+    public async Task<IActionResult> Post([FromBody] CreateRoleRequest request)
     {
         var role = _mapper.Map<Role>(request);
         
@@ -59,7 +62,7 @@ public class RoleController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] UpdateRoleRequest request)
+    public async Task<IActionResult> Put(int id, [FromBody] UpdateRoleRequest request)
     {
         var role = _mapper.Map<Role>(request);
         role.Id = id;
@@ -70,7 +73,7 @@ public class RoleController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
         await _service.Delete(id, CancellationToken.None);
 

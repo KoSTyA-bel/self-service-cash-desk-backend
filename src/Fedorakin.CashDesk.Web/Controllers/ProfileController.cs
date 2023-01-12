@@ -1,6 +1,7 @@
 ﻿using Fedorakin.CashDesk.Logic.Interfaces.Services;
 using Fedorakin.CashDesk.Logic.Models;
-using Fedorakin.CashDesk.Web.Requests.Profile;
+using Fedorakin.CashDesk.Web.Contracts.Requests.Profile;
+using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
@@ -19,7 +20,7 @@ public class ProfileController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Profile>>> Get(int? page, int? pageSize)
+    public async Task<IActionResult> Get(int? page, int? pageSize)
     {
         var profiles = await _service.GetRange(page.Value, pageSize.Value, CancellationToken.None);
 
@@ -28,11 +29,13 @@ public class ProfileController : ControllerBase
             return NotFound();
         }
 
-        return Ok(profiles);
+        var response = _mapper.Map<List<ProfileResponse>>(profiles);
+
+        return Ok(response);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<Profile>> Get(int id)
+    public async Task<IActionResult> Get(int id)
     {
         var profile = await _service.Get(id, CancellationToken.None);
 
@@ -41,11 +44,13 @@ public class ProfileController : ControllerBase
             return NotFound();
         }
 
-        return Ok(profile);
+        var response = _mapper.Map<ProfileResponse>(profile);
+
+        return Ok(response);
     }
 
     [HttpPost]
-    public async Task<ActionResult> Post([FromBody] CreateProfileRequest request)
+    public async Task<IActionResult> Post([FromBody] CreateProfileRequest request)
     {
         var profile = _mapper.Map<Profile>(request);
 
@@ -55,7 +60,7 @@ public class ProfileController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] UpdateProfileRequest request)
+    public async Task<IActionResult> Put(int id, [FromBody] UpdateProfileRequest request)
     {
         var profile = _mapper.Map<Profile>(request);
         profile.Id = id;
@@ -66,7 +71,7 @@ public class ProfileController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
         await _service.Delete(id, CancellationToken.None);
 

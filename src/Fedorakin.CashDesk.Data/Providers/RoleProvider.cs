@@ -11,8 +11,8 @@ public class RoleProvider : BaseProvider<Role>, IRoleProvider
 	{
 	}
 
-    public override Task<Role?> Get(int id, CancellationToken cancellationToken)
+    protected override IQueryable<Role> IncludeNavigationEntities(IQueryable<Role> data)
     {
-       return _data.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        return data;
     }
 }

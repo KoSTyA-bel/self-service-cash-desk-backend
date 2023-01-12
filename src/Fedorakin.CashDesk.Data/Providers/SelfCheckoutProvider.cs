@@ -12,8 +12,8 @@ public class SelfCheckoutProvider : BaseProvider<SelfCheckout>, ISelfCheckoutPro
     {
     }
 
-    public override Task<SelfCheckout?> Get(int id, CancellationToken cancellationToken)
+    protected override IQueryable<SelfCheckout> IncludeNavigationEntities(IQueryable<SelfCheckout> data)
     {
-        return _data.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        return data;
     }
 }

@@ -1,7 +1,4 @@
-﻿using Fedorakin.CashDesk.Logic.Interfaces.Providers;
-using Fedorakin.CashDesk.Logic.Interfaces.Repositories;
-using Fedorakin.CashDesk.Logic.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Fedorakin.CashDesk.Logic.Interfaces.Services;
 using Fedorakin.CashDesk.Logic.Services;
 

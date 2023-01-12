@@ -79,9 +79,6 @@ namespace Fedorakin.CashDesk.Data.Migrations
                     b.Property<Guid>("Number")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("PoductId")
-                        .HasColumnType("int");
-
                     b.Property<double>("Price")
                         .HasColumnType("float");
 
@@ -101,7 +98,7 @@ namespace Fedorakin.CashDesk.Data.Migrations
                     b.Property<double>("Amount")
                         .HasColumnType("float");
 
-                    b.Property<int>("CardId")
+                    b.Property<int?>("CardId")
                         .HasColumnType("int");
 
                     b.Property<Guid>("CartNumber")
@@ -144,7 +141,7 @@ namespace Fedorakin.CashDesk.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("Desciprion")
+                    b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");

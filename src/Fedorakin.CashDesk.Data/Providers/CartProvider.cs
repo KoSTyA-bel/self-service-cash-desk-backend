@@ -11,11 +11,8 @@ public class CartProvider : BaseProvider<Cart>, ICartProvider
 	{
 	}
 
-    public override Task<Cart?> Get(int id, CancellationToken cancellationToken)
+    protected override IQueryable<Cart> IncludeNavigationEntities(IQueryable<Cart> data)
     {
-        return _data
-            .Where(x => x.Id == id)
-            .Include(x => x.Products)
-            .FirstOrDefaultAsync(cancellationToken);
+        return data.Include(x => x.Products);
     }
 }

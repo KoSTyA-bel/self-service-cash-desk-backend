@@ -11,12 +11,16 @@ public class CardProvider : BaseProvider<Card>, ICardProvider
     {
     }
 
-    public override Task<Card?> Get(int id, CancellationToken cancellationToken)
+    public Task<Card?> GetCardByCode(string code, CancellationToken cancellationToken)
     {
-        return _data
-            .Where(x => x.Id == id)
+        return IncludeNavigationEntities(_data)
+            .FirstOrDefaultAsync(x => x.Code.Equals(code), cancellationToken);
+    }
+
+    protected override IQueryable<Card> IncludeNavigationEntities(IQueryable<Card> data)
+    {
+        return data
             .Include(x => x.Profile)
-            .ThenInclude(x => x.Role)
-            .FirstOrDefaultAsync(cancellationToken);
+            .ThenInclude(x => x.Role);
     }
 }

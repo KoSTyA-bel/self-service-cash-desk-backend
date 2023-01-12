@@ -7,14 +7,13 @@ namespace Fedorakin.CashDesk.Data.Providers;
 
 public class ProductProvider : BaseProvider<Product>, IProductProvider
 {
-
     public ProductProvider(DbSet<Product> products)
         : base(products)
     {
     }
 
-    public override Task<Product?> Get(int id, CancellationToken cancellationToken)
+    protected override IQueryable<Product> IncludeNavigationEntities(IQueryable<Product> data)
     {
-        return _data.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        return data;
     }
 }

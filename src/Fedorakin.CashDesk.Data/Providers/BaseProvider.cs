@@ -13,10 +13,21 @@ public abstract class BaseProvider<T> : IBaseProvider<T> where T : BaseEntity
         _data = dataColletion ?? throw new ArgumentNullException(nameof(dataColletion));
     }
 
-    public abstract Task<T?> Get(int id, CancellationToken cancellationToken);
+    public virtual Task<T?> Get(int id, CancellationToken cancellationToken)
+    {
+        return IncludeNavigationEntities(_data)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
 
     public virtual Task<List<T>> GetRange(int page, int pageSize, CancellationToken cancellationToken)
     {
-        return _data.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        return IncludeNavigationEntities(_data)
+            .AsNoTracking()
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
     }
+
+    protected abstract IQueryable<T> IncludeNavigationEntities(IQueryable<T> data);
 }

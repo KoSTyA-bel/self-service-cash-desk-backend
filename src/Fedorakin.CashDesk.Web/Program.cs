@@ -6,6 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDataBase("Data Source=(localdb)\\MyInstance;Database=myDataBase");
 
+builder.Services.AddMemoryCache();
+
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddServices();

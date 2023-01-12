@@ -11,11 +11,9 @@ public class ProfileProvider : BaseProvider<Profile>, IProfileProvider
     {
     }
 
-    public override Task<Profile?> Get(int id, CancellationToken cancellationToken)
+    protected override IQueryable<Profile> IncludeNavigationEntities(IQueryable<Profile> data)
     {
-        return _data
-            .Where(x => x.Id == id)
-            .Include(x => x.Role)
-            .FirstOrDefaultAsync(cancellationToken);
+        return data
+            .Include(x => x.Role);
     }
 }
