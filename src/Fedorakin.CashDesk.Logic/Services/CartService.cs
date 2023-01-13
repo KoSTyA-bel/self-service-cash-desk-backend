@@ -31,38 +31,9 @@ public class CartService : ServiceBase<Cart>, ICartService
         _timeSpanProvider = timeSpanProvider ?? throw new ArgumentNullException(nameof(timeSpanProvider));
     }
 
-    public override async Task Create(Cart entity, CancellationToken cancellationToken)
+    public override Task Create(Cart entity, CancellationToken cancellationToken)
     {
-        var emptyCart = new Cart
-        {
-            Date = _dateTimeProvider.Now(),
-            Number = entity.Number,
-            Price = entity.Price,
-        };
-
-        await _repository.Create(emptyCart, cancellationToken);
-
-        var products = new List<Product>();
-        
-        foreach (var product in entity.Products)
-        {
-            var stock = await _stockService.GetStockForProduct(product.Id, cancellationToken);
-
-            if (stock.Count <= 0)
-            {
-                continue;
-            }
-
-            products.Add(stock.Product);
-
-            stock.Count -= 1;
-
-            await _stockService.Update(stock, cancellationToken);
-        }
-
-        emptyCart.Products.AddRange(products);
-
-        await _unitOfWork.SaveChanges(cancellationToken);
+        return base.Create(entity, cancellationToken);     
     }
 
     public void AddProductsToCart(Guid cartNumber, List<Product> products)

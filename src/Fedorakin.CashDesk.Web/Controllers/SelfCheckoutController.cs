@@ -17,14 +17,16 @@ public class SelfCheckoutController : ControllerBase
     private readonly ICartService _cartService;
     private readonly ICardService _cardService;
     private readonly ICheckService _checkService;
+    private readonly IStockService _stockService;
     private readonly IMapper _mapper;
 
-    public SelfCheckoutController(ISelfCheckoutService selfCheckoutService, ICartService cartService, ICardService cardService, ICheckService checkService, IMapper mapper)
+    public SelfCheckoutController(ISelfCheckoutService selfCheckoutService, ICartService cartService, ICardService cardService, ICheckService checkService, IStockService stockService, IMapper mapper)
     {
         _selfCheckoutService = selfCheckoutService ?? throw new ArgumentNullException(nameof(selfCheckoutService));
         _cartService = cartService ?? throw new ArgumentNullException(nameof(cartService));
         _cardService = cardService ?? throw new ArgumentNullException(nameof(cardService));
         _checkService = checkService ?? throw new ArgumentNullException(nameof(checkService));
+        _stockService = stockService ?? throw new ArgumentNullException(nameof(stockService));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
@@ -131,6 +133,29 @@ public class SelfCheckoutController : ControllerBase
                 await _cardService.Update(card, CancellationToken.None);
             }
         }
+
+        var products = new List<Product>();
+
+        foreach (var product in cart.Products)
+        {
+            var stock = await _stockService.GetStockForProduct(product.Id, CancellationToken.None);
+
+            if (stock is null)
+            {
+                continue;
+            }
+
+            if (stock.Count > 0)
+            {
+                products.Add(stock.Product);
+
+                stock.Count -= 1;
+
+                _stockService.Update(stock, CancellationToken.None);
+            }
+        }
+
+        cart.Products = products;
 
         await _cartService.Create(cart, CancellationToken.None);
         await _checkService.Create(check, CancellationToken.None);
