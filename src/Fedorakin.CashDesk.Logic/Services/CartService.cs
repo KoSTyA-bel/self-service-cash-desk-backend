@@ -10,11 +10,59 @@ namespace Fedorakin.CashDesk.Logic.Services;
 public class CartService : ServiceBase<Cart>, ICartService
 {
     private readonly IMemoryCache _cache;
+    private readonly IStockService _stockService;
+    private new ICartProvider _cartProvider;
+    private ITimeSpanProvider _timeSpanProvider;
+    private IDateTimeProvider _dateTimeProvider;
 
-    public CartService(ICartProvider provider, ICartRepository repository, IUnitOfWork unitOfWork, IMemoryCache memoryCache)
+    public CartService(ICartProvider provider,
+        ICartRepository repository,
+        IUnitOfWork unitOfWork,
+        IStockService stockService,
+        ITimeSpanProvider timeSpanProvider,
+        IDateTimeProvider dateTimeProvider,
+        IMemoryCache memoryCache)
         : base(provider, repository, unitOfWork)
     {
+        _cartProvider = provider ?? throw new ArgumentNullException(nameof(provider));
         _cache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
+        _stockService = stockService ?? throw new ArgumentNullException(nameof(memoryCache));
+        _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
+        _timeSpanProvider = timeSpanProvider ?? throw new ArgumentNullException(nameof(timeSpanProvider));
+    }
+
+    public override async Task Create(Cart entity, CancellationToken cancellationToken)
+    {
+        var emptyCart = new Cart
+        {
+            Date = _dateTimeProvider.Now(),
+            Number = entity.Number,
+            Price = entity.Price,
+        };
+
+        await _repository.Create(emptyCart, cancellationToken);
+
+        var products = new List<Product>();
+        
+        foreach (var product in entity.Products)
+        {
+            var stock = await _stockService.GetStockForProduct(product.Id, cancellationToken);
+
+            if (stock.Count <= 0)
+            {
+                continue;
+            }
+
+            products.Add(stock.Product);
+
+            stock.Count -= 1;
+
+            await _stockService.Update(stock, cancellationToken);
+        }
+
+        emptyCart.Products.AddRange(products);
+
+        await _unitOfWork.SaveChanges(cancellationToken);
     }
 
     public void AddProductsToCart(Guid cartNumber, List<Product> products)
@@ -43,7 +91,7 @@ public class CartService : ServiceBase<Cart>, ICartService
             cart.Price += product.Price;
         }
 
-        _cache.Set(cartNumber, cart, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(5)));
+        _cache.Set(cartNumber, cart, new MemoryCacheEntryOptions().SetAbsoluteExpiration(_timeSpanProvider.ForFiveMinutes()));
     }
 
     public void AddProductToCart(Guid cartNumber, Product product)
@@ -58,21 +106,26 @@ public class CartService : ServiceBase<Cart>, ICartService
         cart.Products.Add(product);
         cart.Price += product.Price;
 
-        _cache.Set(cartNumber, cart, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(5)));
+        _cache.Set(cartNumber, cart, new MemoryCacheEntryOptions().SetAbsoluteExpiration(_timeSpanProvider.ForFiveMinutes()));
     }
 
-    public Task<Cart?> GetByCartNumber(Guid cartNumber, CancellationToken cancellationToken)
+    public Task<Cart?> GetCachedCartByNumber(Guid cartNumber, CancellationToken cancellationToken)
     {
         var obj = _cache.Get(cartNumber);
 
         return Task.FromResult(obj as Cart);
     }
 
+    public Task<Cart?> GetCartByNumber(Guid number, CancellationToken cancellationToken)
+    {
+        return _cartProvider.GetCartByNumber(number, cancellationToken);
+    }
+
     public Task<Cart?> TakeCart(Guid cartNumber, CancellationToken cancellationToken)
     {
         var cart = new Cart { Number = cartNumber };
 
-        _cache.Set(cartNumber, cart, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(5)));
+        _cache.Set(cartNumber, cart, new MemoryCacheEntryOptions().SetAbsoluteExpiration(_timeSpanProvider.ForFiveMinutes()));
 
         return Task.FromResult(cart);
     }

@@ -21,9 +21,19 @@ public class StockController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get(int? page, int? pageSize)
+    public async Task<IActionResult> Get(int page, int pageSize)
     {
-        var stocks = await _service.GetRange(page.Value, pageSize.Value, CancellationToken.None);
+        if (page < 1)
+        {
+            return BadRequest("Page must be greater than 1");
+        }
+
+        if (pageSize < 1)
+        {
+            return BadRequest("Page size must be greater than 1");
+        }
+
+        var stocks = await _service.GetRange(page, pageSize, CancellationToken.None);
 
         if (stocks.Count == 0)
         {
@@ -63,7 +73,14 @@ public class StockController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Put(int id, [FromBody] UpdateStockRequest request)
     {
-        var stock = _mapper.Map<Stock>(request);
+        var stock = await _service.Get(id, CancellationToken.None);
+
+        if (stock is null)
+        {
+            return NotFound();
+        }
+
+        stock = _mapper.Map<Stock>(request);
         stock.Id = id;
 
         await _service.Update(stock, CancellationToken.None);

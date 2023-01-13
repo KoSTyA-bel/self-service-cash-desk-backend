@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Fedorakin.CashDesk.Logic.Interfaces.Services;
+using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
@@ -19,8 +20,33 @@ public class CartController : ControllerBase
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
-    [HttpPut("{cartNumber}")]
-    public async Task<IActionResult> AddProductToCart(Guid cartNumber, [FromBody] int productId)
+    [HttpGet]
+    public async Task<IActionResult> Get(int page, int pageSize)
+    {
+        if (page < 1)
+        {
+            return BadRequest("Page must be greater than 1");
+        }
+
+        if (pageSize < 1)
+        {
+            return BadRequest("Page size must be greater than 1");
+        }
+
+        var carts = await _cartService.GetRange(page, pageSize, CancellationToken.None);
+
+        if (carts.Count == 0)
+        {
+            return NotFound();
+        }
+
+        var response = _mapper.Map<List<CartResponse>>(carts);
+
+        return Ok(response);
+    }
+
+    [HttpPut("{number}")]
+    public async Task<IActionResult> AddProductToCart(Guid number, [FromBody] int productId)
     {
         var stock = await _stockService.GetStockForProduct(productId, CancellationToken.None);
 
@@ -34,8 +60,23 @@ public class CartController : ControllerBase
             return BadRequest("Product out of stock");
         }
 
-        _cartService.AddProductToCart(cartNumber, stock.Product);
+        _cartService.AddProductToCart(number, stock.Product);
 
-        return Ok("Succes");
+        return Ok("Success");
+    }
+
+    [HttpGet("{number}")]
+    public async Task<IActionResult> GetCartByNumber(Guid number)
+    {
+        var cart = await _cartService.GetCartByNumber(number, CancellationToken.None);
+
+        if (cart is null)
+        {
+            return NotFound();
+        }
+
+        var response = _mapper.Map<CartResponse>(cart);
+
+        return Ok(response);
     }
 }

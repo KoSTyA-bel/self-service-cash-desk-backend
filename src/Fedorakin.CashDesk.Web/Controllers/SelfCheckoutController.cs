@@ -29,9 +29,19 @@ public class SelfCheckoutController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get(int? page, int? pageSize)
+    public async Task<IActionResult> Get(int page, int pageSize)
     {
-        var selfCheckouts = await _selfCheckoutService.GetRange(page.Value, pageSize.Value, CancellationToken.None);
+        if (page < 1)
+        {
+            return BadRequest("Page must be greater than 1");
+        }
+
+        if (pageSize < 1)
+        {
+            return BadRequest("Page size must be greater than 1");
+        }
+
+        var selfCheckouts = await _selfCheckoutService.GetRange(page, pageSize, CancellationToken.None);
 
         if (selfCheckouts.Count == 0)
         {
@@ -88,7 +98,7 @@ public class SelfCheckoutController : ControllerBase
             return BadRequest("Cart does not belong to self checkout");
         }
 
-        var cart = await _cartService.GetByCartNumber(request.CartNumber, CancellationToken.None);
+        var cart = await _cartService.GetCachedCartByNumber(request.CartNumber, CancellationToken.None);
 
         if (cart is null)
         {
@@ -100,34 +110,46 @@ public class SelfCheckoutController : ControllerBase
             return BadRequest("Cart is empty");
         }
 
-        Card card = string.IsNullOrEmpty(request.CardCode) ? null : await _cardService.GetCardByCode(request.CardCode, CancellationToken.None);
-
         var check = new Check
         {
             SelfCheckoutId = selfCheckout.Id,
             CartNumber = request.CartNumber,
             Amount = cart.Price,
-            Total = cart.Price * (100 - card?.Discount ?? 0)
+            Total = cart.Price
         };
-        check.Discount = check.Amount - check.Total;
 
-        if (card is not null)
+        if (!string.IsNullOrEmpty(request.CardCode))
         {
-            check.Card = card;
-            await _cardService.Update(card, CancellationToken.None);
+            var card = await _cardService.GetCardByCode(request.CardCode, CancellationToken.None);
+
+            if (card is not null) 
+            {
+                check.Card = card;
+                check.Total = check.Total * (100 - card?.Discount ?? 0) / 100;
+                check.Discount = check.Amount - check.Total;
+                card.Total += check.Total;
+                await _cardService.Update(card, CancellationToken.None);
+            }
         }
 
         await _cartService.Create(cart, CancellationToken.None);
         await _checkService.Create(check, CancellationToken.None);
         await _selfCheckoutService.Free(selfCheckout.Id, CancellationToken.None);
 
-        return Ok();
+        return Ok(check.Id);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Put(int id, [FromBody] UpdateSelfCheckoutRequest request)
     {
-        var selfCheckout = _mapper.Map<SelfCheckout>(request);
+        var selfCheckout = await _selfCheckoutService.Get(id, CancellationToken.None);
+
+        if (selfCheckout is null)
+        {
+            return NotFound();
+        }
+
+        selfCheckout = _mapper.Map<SelfCheckout>(request);
         selfCheckout.Id = id;
 
         await _selfCheckoutService.Update(selfCheckout, CancellationToken.None);
@@ -135,7 +157,7 @@ public class SelfCheckoutController : ControllerBase
         return Ok(selfCheckout.Id);
     }
 
-    [HttpGet("Take/{id}")]
+    [HttpPut("Take/{id}")]
     public async Task<IActionResult> Take(int id)
     {
         try
@@ -149,6 +171,10 @@ public class SelfCheckoutController : ControllerBase
         catch (SelfCheckoutBusyException)
         {
             return BadRequest("Self checkout is busy");
+        }
+        catch (SelfCheckoutUnactiveException)
+        {
+            return BadRequest("Self checkout is not active");
         }
     }
 

@@ -11,16 +11,23 @@ namespace Fedorakin.CashDesk.Logic.Services;
 public class SelfCheckoutService : ServiceBase<SelfCheckout>, ISelfCheckoutService
 {
     private readonly IMemoryCache _cache;
+    private readonly ITimeSpanProvider _timeSpamProvider;
 
-    public SelfCheckoutService(ISelfCheckoutProvider provider, ISelfCheckoutRepository repository, IUnitOfWork unitOfWork, IMemoryCache memoryCache) 
+    public SelfCheckoutService(ISelfCheckoutProvider provider,
+        ISelfCheckoutRepository repository,
+        IUnitOfWork unitOfWork,
+        ITimeSpanProvider timeSpanProvider,
+        IMemoryCache memoryCache) 
         : base(provider, repository, unitOfWork)
     {
+        _timeSpamProvider= timeSpanProvider ?? throw new ArgumentNullException(nameof(timeSpanProvider));
         _cache= memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
     }
 
     public Task Free(int id, CancellationToken cancellationToken)
     {
         _cache.Remove(id);
+
         return Task.CompletedTask;
     }
 
@@ -65,13 +72,13 @@ public class SelfCheckoutService : ServiceBase<SelfCheckout>, ISelfCheckoutServi
 
         if (!selfCheckout.IsActive)
         {
-            throw new ArgumentException();
+            throw new SelfCheckoutUnactiveException();
         }
 
         selfCheckout.IsBusy = true;
         selfCheckout.ActiveNumber = Guid.NewGuid();
 
-        _cache.Set(selfCheckout.Id, selfCheckout, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(5)));
+        _cache.Set(selfCheckout.Id, selfCheckout, new MemoryCacheEntryOptions().SetAbsoluteExpiration(_timeSpamProvider.ForFiveMinutes()));
 
         return selfCheckout.ActiveNumber;
     }

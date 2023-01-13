@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Fedorakin.CashDesk.Logic.Interfaces.Services;
 using Fedorakin.CashDesk.Logic.Services;
+using Fedorakin.CashDesk.Logic.Interfaces.Providers;
+using Fedorakin.CashDesk.Logic.Providers;
 
 namespace Fedorakin.CashDesk.Logic;
 
@@ -16,7 +18,9 @@ public static class LogicExtensions
             .AddScoped<ICartService, CartService>()
             .AddScoped<ICardService, CardService>()
             .AddScoped<ICheckService, CheckService>()
-            .AddScoped<ISelfCheckoutService, SelfCheckoutService>();
+            .AddScoped<ISelfCheckoutService, SelfCheckoutService>()
+            .AddScoped<IDateTimeProvider, DateTimeProvider>()
+            .AddScoped<ITimeSpanProvider, TimeSpanProvider>();
 
         return services;
     }

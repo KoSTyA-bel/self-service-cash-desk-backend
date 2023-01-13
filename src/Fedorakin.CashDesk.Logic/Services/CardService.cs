@@ -16,6 +16,11 @@ public class CardService : ServiceBase<Card>, ICardService
         _provider = provider ?? throw new ArgumentNullException();
     }
 
+    public Task<Card?> GetByProfileId(int id, CancellationToken cancellationToken)
+    {
+        return _provider.GetByProfileId(id, cancellationToken);
+    }
+
     public Task<Card?> GetCardByCode(string code, CancellationToken cancellationToken)
     {
         return _provider.GetCardByCode(code, cancellationToken);

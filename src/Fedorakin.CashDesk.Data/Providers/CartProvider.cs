@@ -11,6 +11,13 @@ public class CartProvider : BaseProvider<Cart>, ICartProvider
 	{
 	}
 
+    public Task<Cart?> GetCartByNumber(Guid number, CancellationToken cancellationToken)
+    {
+        return IncludeNavigationEntities(_data)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Number == number);
+    }
+
     protected override IQueryable<Cart> IncludeNavigationEntities(IQueryable<Cart> data)
     {
         return data.Include(x => x.Products);

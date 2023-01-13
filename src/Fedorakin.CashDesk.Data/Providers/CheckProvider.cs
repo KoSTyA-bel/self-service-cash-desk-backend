@@ -15,6 +15,8 @@ public class CheckProvider: BaseProvider<Check>, ICheckProvider
     {
         return data
             .Include(x => x.Card)
+            .ThenInclude(x => x.Profile)
+            .ThenInclude(x => x.Role)
             .Include(x => x.SelfCheckout);
     }
 }

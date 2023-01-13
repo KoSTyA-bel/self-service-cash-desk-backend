@@ -1,4 +1,5 @@
 ﻿using Fedorakin.CashDesk.Logic.Models;
+using Fedorakin.CashDesk.Web.Contracts.Requests.Card;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Product;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Profile;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Role;
@@ -43,8 +44,7 @@ public class MappingProfile : AutoMapper.Profile
         CreateMap<SelfCheckout, SelfCheckoutResponse>()
             .ForMember(x => x.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(x => x.IsBusy, opt => opt.MapFrom(src => src.IsBusy))
-            .ForMember(x => x.IsActive, opt => opt.MapFrom(src => src.IsActive))
-            .ForMember(x => x.ActiveNumber, opt => opt.MapFrom(src => src.ActiveNumber));
+            .ForMember(x => x.IsActive, opt => opt.MapFrom(src => src.IsActive));
 
         CreateMap<CreateProductRequest, Product>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
@@ -75,5 +75,33 @@ public class MappingProfile : AutoMapper.Profile
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product))
             .ForMember(dest => dest.Count, opt => opt.MapFrom(src => src.Count));
+
+        CreateMap<Cart, CartResponse>()
+            .ForMember(dest => dest.Number, opt => opt.MapFrom(src => src.Number))
+            .ForMember(dest => dest.Products, opt => opt.MapFrom(src => src.Products))
+            .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date))
+            .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price));
+
+        CreateMap<Check, CheckResponse>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.SelfCheckout, opt => opt.MapFrom(src => src.SelfCheckout))
+            .ForMember(dest => dest.Card, opt => opt.MapFrom(src => src.Card))
+            .ForMember(dest => dest.Total, opt => opt.MapFrom(src => src.Total))
+            .ForMember(dest => dest.Discount, opt => opt.MapFrom(src => src.Discount))
+            .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount));
+
+        CreateMap<CreateCardRequest, Card>()
+            .ForMember(dest => dest.ProfileId, opt => opt.MapFrom(src => src.ProfileId))
+            .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.Code))
+            .ForMember(dest => dest.Discount, opt => opt.MapFrom(src => src.Discount));
+        CreateMap<UpdateCardRequest, Card>()
+            .ForMember(dest => dest.ProfileId, opt => opt.MapFrom(src => src.ProfileId))
+            .ForMember(dest => dest.Discount, opt => opt.MapFrom(src => src.Discount));
+        CreateMap<Card, CardResponse>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.Code))
+            .ForMember(dest => dest.Discount, opt => opt.MapFrom(src => src.Discount))
+            .ForMember(dest => dest.Total, opt => opt.MapFrom(src => src.Total))
+            .ForMember(dest => dest.Profile, opt => opt.MapFrom(src => src.Profile));
     }
 }

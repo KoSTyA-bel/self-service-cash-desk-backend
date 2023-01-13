@@ -22,9 +22,19 @@ public class RoleController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get(int? page, int? pageSize)
+    public async Task<IActionResult> Get(int page, int pageSize)
     {
-        var roles = await _service.GetRange(page.Value, pageSize.Value, CancellationToken.None);
+        if (page < 1)
+        {
+            return BadRequest("Page must be greater than 1");
+        }
+
+        if (pageSize < 1)
+        {
+            return BadRequest("Page size must be greater than 1");
+        }
+
+        var roles = await _service.GetRange(page, pageSize, CancellationToken.None);
 
         if (roles.Count == 0)
         {
@@ -56,6 +66,11 @@ public class RoleController : ControllerBase
     {
         var role = _mapper.Map<Role>(request);
         
+        if (!IsRoleDataValid(role))
+        {
+            return BadRequest("Invalid data");
+        }
+
         await _service.Create(role, CancellationToken.None);
 
         return Ok(role.Id);
@@ -64,8 +79,20 @@ public class RoleController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Put(int id, [FromBody] UpdateRoleRequest request)
     {
-        var role = _mapper.Map<Role>(request);
+        var role = await _service.Get(id, CancellationToken.None);
+
+        if (role is null)
+        {
+            return NotFound();
+        }
+
+        role = _mapper.Map<Role>(request);
         role.Id = id;
+
+        if (!IsRoleDataValid(role))
+        {
+            return BadRequest("Invalid data");
+        }
 
         await _service.Update(role, CancellationToken.None);
 
@@ -78,5 +105,10 @@ public class RoleController : ControllerBase
         await _service.Delete(id, CancellationToken.None);
 
         return Ok();
+    }
+
+    private bool IsRoleDataValid(Role role)
+    {
+        return !(role.Name.Length > 50);
     }
 }

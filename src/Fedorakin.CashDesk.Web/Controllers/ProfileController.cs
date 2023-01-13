@@ -10,19 +10,31 @@ namespace Fedorakin.CashDesk.Web.Controllers;
 [ApiController]
 public class ProfileController : ControllerBase
 {
-    private readonly IProfileService _service;
+    private readonly IProfileService _profileService;
+    private readonly IRoleService _roleService;
     private readonly AutoMapper.IMapper _mapper;
 
-    public ProfileController(IProfileService service, AutoMapper.IMapper mapper)
+    public ProfileController(IProfileService profileService, IRoleService roleService, AutoMapper.IMapper mapper)
     {
-        _service = service ?? throw new ArgumentNullException(nameof(service));
+        _profileService = profileService ?? throw new ArgumentNullException(nameof(profileService));
+        _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get(int? page, int? pageSize)
+    public async Task<IActionResult> Get(int page, int pageSize)
     {
-        var profiles = await _service.GetRange(page.Value, pageSize.Value, CancellationToken.None);
+        if (page < 1)
+        {
+            return BadRequest("Page must be greater than 1");
+        }
+
+        if (pageSize < 1)
+        {
+            return BadRequest("Page size must be greater than 1");
+        }
+
+        var profiles = await _profileService.GetRange(page, pageSize, CancellationToken.None);
 
         if (profiles.Count == 0)
         {
@@ -37,7 +49,7 @@ public class ProfileController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(int id)
     {
-        var profile = await _service.Get(id, CancellationToken.None);
+        var profile = await _profileService.Get(id, CancellationToken.None);
 
         if (profile is null)
         {
@@ -54,7 +66,19 @@ public class ProfileController : ControllerBase
     {
         var profile = _mapper.Map<Profile>(request);
 
-        await _service.Create(profile, CancellationToken.None);
+        if (!IsProfileDataValid(profile))
+        {
+            return BadRequest("Invalid data");
+        }
+
+        var role = await _roleService.Get(profile.RoleId, CancellationToken.None);
+
+        if (role is null)
+        {
+            return BadRequest("Role does not exist");
+        }
+
+        await _profileService.Create(profile, CancellationToken.None);
 
         return Ok(profile.Id);
     }
@@ -62,10 +86,29 @@ public class ProfileController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Put(int id, [FromBody] UpdateProfileRequest request)
     {
-        var profile = _mapper.Map<Profile>(request);
+        var profile = await _profileService.Get(id, CancellationToken.None);
+
+        if (profile is null)
+        {
+            return NotFound();
+        }
+
+        profile = _mapper.Map<Profile>(request);
         profile.Id = id;
 
-        await _service.Update(profile, CancellationToken.None);
+        if (!IsProfileDataValid(profile))
+        {
+            return BadRequest("Invalid data");
+        }
+
+        var role = await _roleService.Get(profile.RoleId, CancellationToken.None);
+
+        if (role is null)
+        {
+            return BadRequest("Role does not exist");
+        }
+
+        await _profileService.Update(profile, CancellationToken.None);
 
         return Ok();
     }
@@ -73,8 +116,13 @@ public class ProfileController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        await _service.Delete(id, CancellationToken.None);
+        await _profileService.Delete(id, CancellationToken.None);
 
         return Ok();
+    }
+
+    private bool IsProfileDataValid(Profile profile)
+    {
+        return !(profile.FullName.Length > 50);
     }
 }

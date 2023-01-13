@@ -21,9 +21,19 @@ public class ProductController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get(int? page, int? pageSize)
+    public async Task<IActionResult> Get(int page, int pageSize)
     {
-        var products = await _service.GetRange(page.Value, pageSize.Value, CancellationToken.None);
+        if (page < 1)
+        {
+            return BadRequest("Page must be greater than 1");
+        }
+
+        if (pageSize < 1)
+        {
+            return BadRequest("Page size must be greater than 1");
+        }
+
+        var products = await _service.GetRange(page, pageSize, CancellationToken.None);
 
         if (products.Count == 0)
         {
@@ -55,6 +65,11 @@ public class ProductController : ControllerBase
     {
         var product = _mapper.Map<Product>(request);
 
+        if (!IsProductDataValid(product))
+        {
+            return BadRequest("Invalid data");
+        }
+
         await _service.Create(product, CancellationToken.None);
 
         return Ok(product.Id);
@@ -63,8 +78,20 @@ public class ProductController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Put(int id, [FromBody] UpdateProductRequest request)
     {
-        var product = _mapper.Map<Product>(request);
+        var product = await _service.Get(id, CancellationToken.None);
+
+        if (product is null)
+        {
+            return NotFound();
+        }
+
+        product = _mapper.Map<Product>(request);
         product.Id = id;
+
+        if (!IsProductDataValid(product))
+        {
+            return BadRequest("Invalid data");
+        }
 
         await _service.Update(product, CancellationToken.None);
 
@@ -77,5 +104,10 @@ public class ProductController : ControllerBase
         await _service.Delete(id, CancellationToken.None);
 
         return Ok();
+    }
+
+    private bool IsProductDataValid(Product product)
+    {
+        return !(product.Name.Length > 50 || product.Description.Length > 50 || product.Description.Length > 50);
     }
 }
