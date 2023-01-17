@@ -1,6 +1,6 @@
 using Fedorakin.CashDesk.Data;
 using Fedorakin.CashDesk.Logic;
-using Fedorakin.CashDesk.Web;
+using Fedorakin.CashDesk.Web.Mapping;
 
 var builder = WebApplication.CreateBuilder(args);
 
