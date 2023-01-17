@@ -87,9 +87,16 @@ public class CartService : ServiceBase<Cart>, ICartService
         return Task.FromResult(obj as Cart);
     }
 
-    public Task<Cart?> GetCartByNumber(Guid number, CancellationToken cancellationToken)
+    public async Task<Cart?> GetCartByNumber(Guid number, CancellationToken cancellationToken)
     {
-        return _cartProvider.GetCartByNumber(number, cancellationToken);
+        var cart = await GetCachedCartByNumber(number, cancellationToken);
+
+        if (cart is not null)
+        {
+            return cart;
+        }
+
+        return await _cartProvider.GetCartByNumber(number, cancellationToken);
     }
 
     public Task<Cart?> TakeCart(Guid cartNumber, CancellationToken cancellationToken)

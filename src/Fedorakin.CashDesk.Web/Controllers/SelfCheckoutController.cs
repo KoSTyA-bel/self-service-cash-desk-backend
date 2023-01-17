@@ -151,7 +151,7 @@ public class SelfCheckoutController : ControllerBase
 
                 stock.Count -= 1;
 
-                _stockService.Update(stock, CancellationToken.None);
+                await _stockService.Update(stock, CancellationToken.None);
             }
         }
 

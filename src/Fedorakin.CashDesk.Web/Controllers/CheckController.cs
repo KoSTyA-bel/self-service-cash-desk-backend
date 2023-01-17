@@ -43,7 +43,7 @@ public class CheckController : ControllerBase
         return Ok(response);
     }
 
-    [HttpGet("id")]
+    [HttpGet("{id}")]
     public async Task<IActionResult> Get(int id)
     {
         if (id <= 0)

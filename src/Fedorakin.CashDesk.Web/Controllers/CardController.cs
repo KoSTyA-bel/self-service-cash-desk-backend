@@ -103,7 +103,7 @@ public class CardController : ControllerBase
 
         await _cardService.Create(card, CancellationToken.None);
 
-        return Ok();
+        return Ok(card.Id);
     }
 
     [HttpPut("{id}")]
