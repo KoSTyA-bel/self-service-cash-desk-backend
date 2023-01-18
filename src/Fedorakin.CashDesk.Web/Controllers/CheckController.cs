@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Logic.Interfaces.Services;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Microsoft.AspNetCore.Mvc;
@@ -9,12 +10,12 @@ namespace Fedorakin.CashDesk.Web.Controllers;
 [ApiController]
 public class CheckController : ControllerBase
 {
-    private readonly ICheckService _service;
+    private readonly ICheckManager _checkManager;
     private readonly IMapper _mapper;
 
-    public CheckController(ICheckService service, IMapper mapper)
+    public CheckController(ICheckManager checkManager, IMapper mapper)
     {
-        _service = service ?? throw new ArgumentNullException(nameof(service));
+        _checkManager = checkManager ?? throw new ArgumentNullException(nameof(checkManager));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
@@ -31,7 +32,7 @@ public class CheckController : ControllerBase
             return BadRequest("Page size must be greater than 1");
         }
 
-        var checks = await _service.GetRange(page, pageSize, CancellationToken.None);
+        var checks = await _checkManager.GetRangeAsync(page, pageSize);
 
         if (checks.Count == 0)
         {
@@ -51,7 +52,7 @@ public class CheckController : ControllerBase
             return BadRequest();
         }
 
-        var check = await _service.Get(id, CancellationToken.None);
+        var check = await _checkManager.GetByIdAsync(id);
 
         if (check is null)
         {

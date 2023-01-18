@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using Fedorakin.CashDesk.Logic.Interfaces.Services;
-using Fedorakin.CashDesk.Logic.Models;
+using Fedorakin.CashDesk.Logic.Interfaces.Managers;
+using Fedorakin.CashDesk.Data.Models;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Product;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Microsoft.AspNetCore.Mvc;
@@ -11,12 +11,14 @@ namespace Fedorakin.CashDesk.Web.Controllers;
 [ApiController]
 public class ProductController : ControllerBase
 {
-    private readonly IProductService _service;
+    private readonly IProductManager _productManager;
+    private readonly IDataStateManager _dataStateManager;
     private readonly IMapper _mapper;
 
-    public ProductController(IProductService service, IMapper mapper)
+    public ProductController(IProductManager productManager, IDataStateManager dataStateManager, IMapper mapper)
     {
-        _service = service ?? throw new ArgumentNullException(nameof(service));
+        _productManager = productManager ?? throw new ArgumentNullException(nameof(productManager));
+        _dataStateManager = dataStateManager ?? throw new ArgumentNullException(nameof(dataStateManager));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
@@ -33,7 +35,7 @@ public class ProductController : ControllerBase
             return BadRequest("Page size must be greater than 1");
         }
 
-        var products = await _service.GetRange(page, pageSize, CancellationToken.None);
+        var products = await _productManager.GetRangeAsync(page, pageSize);
 
         if (products.Count == 0)
         {
@@ -48,7 +50,7 @@ public class ProductController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(int id)
     {
-        var product = await _service.Get(id, CancellationToken.None);
+        var product = await _productManager.GetByIdAsync(id);
 
         if (product is null)
         {
@@ -70,7 +72,9 @@ public class ProductController : ControllerBase
             return BadRequest("Invalid data");
         }
 
-        await _service.Create(product, CancellationToken.None);
+        await _productManager.AddAsync(product);
+
+        await _dataStateManager.CommitChangesAsync();
 
         return Ok(product.Id);
     }
@@ -78,7 +82,7 @@ public class ProductController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Put(int id, [FromBody] UpdateProductRequest request)
     {
-        var product = await _service.Get(id, CancellationToken.None);
+        var product = await _productManager.GetByIdAsync(id);
 
         if (product is null)
         {
@@ -93,7 +97,9 @@ public class ProductController : ControllerBase
             return BadRequest("Invalid data");
         }
 
-        await _service.Update(product, CancellationToken.None);
+        await _productManager.UpdateAsync(product);
+
+        await _dataStateManager.CommitChangesAsync();
 
         return Ok(product.Id);
     }
@@ -101,7 +107,14 @@ public class ProductController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        await _service.Delete(id, CancellationToken.None);
+        var product = await _productManager.GetByIdAsync(id);
+
+        if (product is not null)
+        {
+            await _productManager.DeleteAsync(product);
+
+            await _dataStateManager.CommitChangesAsync();
+        }
 
         return Ok();
     }

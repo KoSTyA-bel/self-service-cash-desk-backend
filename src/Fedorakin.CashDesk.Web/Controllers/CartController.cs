@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Logic.Interfaces.Services;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Microsoft.AspNetCore.Mvc;
@@ -9,14 +10,18 @@ namespace Fedorakin.CashDesk.Web.Controllers;
 [ApiController]
 public class CartController : ControllerBase
 {
-    private readonly ICartService _cartService;
-    private readonly IStockService _stockService;
+    private readonly ICartManager _cartManager;
+    private readonly IStockManager _stockManager;
+    private readonly IDataStateManager _dataStateManager;
+    private readonly ICacheService _cacheService;
     private readonly IMapper _mapper;
 
-    public CartController(ICartService cartService, IStockService stockService, IMapper mapper)
+    public CartController(ICartManager cartManager, IStockManager stockManager, IDataStateManager dataStateManager, ICacheService cacheService, IMapper mapper)
     {
-        _cartService = cartService ?? throw new ArgumentNullException(nameof(cartService));
-        _stockService = stockService ?? throw new ArgumentNullException(nameof(stockService));
+        _cartManager = cartManager ?? throw new ArgumentNullException(nameof(cartManager));
+        _stockManager = stockManager ?? throw new ArgumentNullException(nameof(stockManager));
+        _dataStateManager = dataStateManager ?? throw new ArgumentNullException(nameof(dataStateManager));
+        _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
@@ -33,7 +38,7 @@ public class CartController : ControllerBase
             return BadRequest("Page size must be greater than 1");
         }
 
-        var carts = await _cartService.GetRange(page, pageSize, CancellationToken.None);
+        var carts = await _cartManager.GetRangeAsync(page, pageSize);
 
         if (carts.Count == 0)
         {
@@ -48,7 +53,7 @@ public class CartController : ControllerBase
     [HttpPut("{number}")]
     public async Task<IActionResult> AddProductToCart(Guid number, [FromBody] int productId)
     {
-        var stock = await _stockService.GetStockForProduct(productId, CancellationToken.None);
+        var stock = await _stockManager.GetStockForProductAsync(productId);
 
         if (stock is null)
         {
@@ -60,7 +65,14 @@ public class CartController : ControllerBase
             return BadRequest("Product out of stock");
         }
 
-        _cartService.AddProductToCart(number, stock.Product);
+        if (!_cacheService.TryGetCart(number, out var cart))
+        {
+            return BadRequest("Can`t find cart");
+        }
+
+        cart.Products.Add(stock.Product);
+
+        _cacheService.SetCart(cart);
 
         return Ok("Success");
     }
@@ -68,7 +80,14 @@ public class CartController : ControllerBase
     [HttpGet("{number}")]
     public async Task<IActionResult> GetCartByNumber(Guid number)
     {
-        var cart = await _cartService.GetCartByNumber(number, CancellationToken.None);
+        _ = _cacheService.TryGetCart(number, out var cart);
+
+        if (cart is not null)
+        {
+            return Ok(_mapper.Map<CartResponse>(cart));
+        }
+
+        cart = await _cartManager.GetByNumberAsync(number);
 
         if (cart is null)
         {

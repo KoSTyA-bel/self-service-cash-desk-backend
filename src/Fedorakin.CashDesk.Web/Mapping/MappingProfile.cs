@@ -1,4 +1,4 @@
-﻿using Fedorakin.CashDesk.Logic.Models;
+﻿using Fedorakin.CashDesk.Data.Models;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Card;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Product;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Profile;
@@ -50,15 +50,15 @@ public class MappingProfile : AutoMapper.Profile
 
         #region Self checkout
         CreateMap<CreateSelfCheckoutRequest, SelfCheckout>()
-            .ForMember(x => x.IsActive, opt => opt.MapFrom(src => src.IsActive));
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
 
         CreateMap<UpdateSelfCheckoutRequest, SelfCheckout>()
-            .ForMember(x => x.IsActive, opt => opt.MapFrom(src => src.IsActive));
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
 
         CreateMap<SelfCheckout, SelfCheckoutResponse>()
-            .ForMember(x => x.Id, opt => opt.MapFrom(src => src.Id))
-            .ForMember(x => x.IsBusy, opt => opt.MapFrom(src => src.IsBusy))
-            .ForMember(x => x.IsActive, opt => opt.MapFrom(src => src.IsActive));
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.IsBusy, opt => opt.MapFrom(src => src.IsBusy))
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
         #endregion
 
         #region Product

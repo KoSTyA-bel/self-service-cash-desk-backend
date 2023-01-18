@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using Fedorakin.CashDesk.Logic.Interfaces.Services;
-using Fedorakin.CashDesk.Logic.Models;
+using Fedorakin.CashDesk.Data.Models;
+using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Stock;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Microsoft.AspNetCore.Mvc;
@@ -11,12 +11,14 @@ namespace Fedorakin.CashDesk.Web.Controllers;
 [ApiController]
 public class StockController : ControllerBase
 {
-    private readonly IStockService _service;
+    private readonly IStockManager _stockManager;
+    private readonly IDataStateManager _dataStateManager;
     private readonly IMapper _mapper;
 
-    public StockController(IStockService service, IMapper mapper)
+    public StockController(IStockManager stockManager, IDataStateManager dataStateManager, IMapper mapper)
     {
-        _service = service ?? throw new ArgumentNullException(nameof(service));
+        _stockManager = stockManager ?? throw new ArgumentNullException(nameof(stockManager));
+        _dataStateManager = dataStateManager ?? throw new ArgumentNullException(nameof(dataStateManager));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
@@ -33,7 +35,7 @@ public class StockController : ControllerBase
             return BadRequest("Page size must be greater than 1");
         }
 
-        var stocks = await _service.GetRange(page, pageSize, CancellationToken.None);
+        var stocks = await _stockManager.GetRangeAsync(page, pageSize);
 
         if (stocks.Count == 0)
         {
@@ -48,7 +50,7 @@ public class StockController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(int id)
     {
-        var stock = await _service.Get(id, CancellationToken.None);
+        var stock = await _stockManager.GetByIdAsync(id);
 
         if (stock is null)
         {
@@ -65,7 +67,9 @@ public class StockController : ControllerBase
     {
         var stock = _mapper.Map<Stock>(request);
 
-        await _service.Create(stock, CancellationToken.None);
+        await _stockManager.AddAsync(stock);
+
+        await _dataStateManager.CommitChangesAsync();
 
         return Ok(stock.Id);
     }
@@ -73,7 +77,7 @@ public class StockController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Put(int id, [FromBody] UpdateStockRequest request)
     {
-        var stock = await _service.Get(id, CancellationToken.None);
+        var stock = await _stockManager.GetByIdAsync(id);
 
         if (stock is null)
         {
@@ -83,7 +87,9 @@ public class StockController : ControllerBase
         stock = _mapper.Map<Stock>(request);
         stock.Id = id;
 
-        await _service.Update(stock, CancellationToken.None);
+        await _stockManager.UpdateAsync(stock);
+
+        await _dataStateManager.CommitChangesAsync();
 
         return Ok(stock.Id);
     }
@@ -91,7 +97,14 @@ public class StockController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        await _service.Delete(id, CancellationToken.None);
+        var stock = await _stockManager.GetByIdAsync(id);
+
+        if (stock is not null)
+        {
+            await _stockManager.DeleteAsync(stock);
+
+            await _dataStateManager.CommitChangesAsync();
+        }        
 
         return Ok();
     }

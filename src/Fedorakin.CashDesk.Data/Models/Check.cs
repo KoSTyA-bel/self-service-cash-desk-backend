@@ -1,6 +1,6 @@
-﻿namespace Fedorakin.CashDesk.Web.Contracts.Responses;
+﻿namespace Fedorakin.CashDesk.Data.Models;
 
-public class CheckResponse
+public class Check
 {
     public int Id { get; set; }
 
@@ -14,7 +14,10 @@ public class CheckResponse
 
     public Guid CartNumber { get; set; }
 
-    public CardResponse? Card { get; set; }
+    public Card? Card { get; set; }
 
-    public SelfCheckoutResponse SelfCheckout { get; set; }
+    public int SelfCheckoutId { get; set; }
+
+    public SelfCheckout? SelfCheckout { get; set; }
+
 }

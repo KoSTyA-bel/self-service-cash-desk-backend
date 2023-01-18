@@ -1,4 +1,4 @@
-﻿using Fedorakin.CashDesk.Logic.Models;
+﻿using Fedorakin.CashDesk.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
