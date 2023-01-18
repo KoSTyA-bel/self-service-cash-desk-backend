@@ -6,6 +6,7 @@ using Fedorakin.CashDesk.Logic.Managers;
 using Fedorakin.CashDesk.Logic.Providers;
 using Fedorakin.CashDesk.Logic.Services;
 using Fedorakin.CashDesk.Web.Mapping;
+using Fedorakin.CashDesk.Web.Middlewares;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,6 +44,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<ErrorHandler>();
 
 app.UseHttpsRedirection();
 
