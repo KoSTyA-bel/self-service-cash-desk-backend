@@ -7,11 +7,12 @@ using Fedorakin.CashDesk.Logic.Providers;
 using Fedorakin.CashDesk.Logic.Services;
 using Fedorakin.CashDesk.Web.Mapping;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContextPool<DataContext>(options => options.UseSqlServer("Data Source=(localdb)\\MyInstance;Database=myDataBase"));
+var connectionString = builder.Configuration.GetConnectionString("CashDesk");
+
+builder.Services.AddDbContextPool<DataContext>(options => options.UseSqlServer(connectionString));
 
 builder.Services.AddScoped<ICartManager, CartManager>();
 builder.Services.AddScoped<ICardManager, CardManager>();
