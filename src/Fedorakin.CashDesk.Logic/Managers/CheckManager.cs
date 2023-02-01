@@ -36,6 +36,7 @@ public class CheckManager : ICheckManager
             .Include(x => x.Card)
             .ThenInclude(x => x.Profile)
             .ThenInclude(x => x.Role)
+            .Include(x => x.SelfCheckout)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

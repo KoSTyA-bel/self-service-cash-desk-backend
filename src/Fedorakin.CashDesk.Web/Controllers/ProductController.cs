@@ -4,6 +4,8 @@ using Fedorakin.CashDesk.Data.Models;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Product;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Microsoft.AspNetCore.Mvc;
+using Fedorakin.CashDesk.Web.Exceptions;
+using FluentValidation;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
 
@@ -13,33 +15,38 @@ public class ProductController : ControllerBase
 {
     private readonly IProductManager _productManager;
     private readonly IDataStateManager _dataStateManager;
+    private readonly IValidator<Product> _productValidator;
     private readonly IMapper _mapper;
 
-    public ProductController(IProductManager productManager, IDataStateManager dataStateManager, IMapper mapper)
+    public ProductController(IProductManager productManager, IDataStateManager dataStateManager, IValidator<Product> productValidator, IMapper mapper)
     {
         _productManager = productManager ?? throw new ArgumentNullException(nameof(productManager));
         _dataStateManager = dataStateManager ?? throw new ArgumentNullException(nameof(dataStateManager));
+        _productValidator = productValidator ?? throw new ArgumentNullException(nameof(productValidator));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get(int page, int pageSize)
+    public async Task<IActionResult> Get(int page, int pageSize, string? name, string? barcode)
     {
         if (page < 1)
         {
-            return BadRequest("Page must be greater than 1");
+            throw new InvalidPageNumberException();
         }
 
         if (pageSize < 1)
         {
-            return BadRequest("Page size must be greater than 1");
+            throw new InvalidPageSizeException();
         }
+        
+        name = name ?? string.Empty;
+        barcode = barcode ?? string.Empty;
 
-        var products = await _productManager.GetRangeAsync(page, pageSize);
+        var products = await _productManager.GetRangeAsync(page, pageSize, name, barcode);
 
         if (products.Count == 0)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         var response = _mapper.Map<List<ProductResponse>>(products);
@@ -54,7 +61,7 @@ public class ProductController : ControllerBase
 
         if (product is null)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         var response = _mapper.Map<ProductResponse>(product);
@@ -67,10 +74,7 @@ public class ProductController : ControllerBase
     {
         var product = _mapper.Map<Product>(request);
 
-        if (!IsProductDataValid(product))
-        {
-            return BadRequest("Invalid data");
-        }
+        _productValidator.ValidateAndThrow(product);
 
         await _productManager.AddAsync(product);
 
@@ -86,16 +90,13 @@ public class ProductController : ControllerBase
 
         if (product is null)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         product = _mapper.Map<Product>(request);
         product.Id = id;
 
-        if (!IsProductDataValid(product))
-        {
-            return BadRequest("Invalid data");
-        }
+        _productValidator.ValidateAndThrow(product);
 
         await _productManager.UpdateAsync(product);
 
@@ -117,10 +118,5 @@ public class ProductController : ControllerBase
         }
 
         return Ok();
-    }
-
-    private bool IsProductDataValid(Product product)
-    {
-        return !(product.Name.Length > 50 || product.Description.Length > 50 || product.Description.Length > 50);
     }
 }

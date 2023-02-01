@@ -7,9 +7,11 @@ using Fedorakin.CashDesk.Logic.Providers;
 using Fedorakin.CashDesk.Logic.Services;
 using Fedorakin.CashDesk.Web.Mapping;
 using Fedorakin.CashDesk.Web.Middlewares;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 var connectionString = builder.Configuration.GetConnectionString("CashDesk");
 
@@ -30,12 +32,28 @@ builder.Services.AddScoped<IDateTimeProvider, DateTimeProvider>();
 
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<ICacheService, CacheService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<ICheckService, CheckService>();
+builder.Services.AddScoped<ISelfCheckoutService, SelfCheckoutService>();
+
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(MyAllowSpecificOrigins,
+                      policy =>
+                      {
+                          policy.AllowAnyHeader();
+                          policy.AllowAnyMethod();
+                          policy.WithOrigins("http://localhost:3000");
+                      });
+});
 
 var app = builder.Build();
 
@@ -52,5 +70,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseCors(MyAllowSpecificOrigins);
 
 app.Run();

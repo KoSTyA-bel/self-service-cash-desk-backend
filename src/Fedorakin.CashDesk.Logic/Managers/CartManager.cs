@@ -2,7 +2,6 @@
 using Fedorakin.CashDesk.Data.Models;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography.X509Certificates;
 
 namespace Fedorakin.CashDesk.Logic.Managers;
 

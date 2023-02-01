@@ -3,6 +3,7 @@ using Fedorakin.CashDesk.Data.Models;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Card;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
+using Fedorakin.CashDesk.Web.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
@@ -29,19 +30,19 @@ public class CardController : ControllerBase
     {
         if (page < 1)
         {
-            return BadRequest("Page must be greater than 1");
+            throw new InvalidPageNumberException();
         }
 
         if (pageSize < 1)
         {
-            return BadRequest("Page size must be greater than 1");
+            throw new InvalidPageSizeException();
         }
 
         var cards = await _cardManager.GetRangeAsync(page, pageSize);
 
         if (cards.Count == 0)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         var response = _mapper.Map<List<CardResponse>>(cards);
@@ -56,7 +57,7 @@ public class CardController : ControllerBase
 
         if (card is null)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         var response = _mapper.Map<CardResponse>(card);
@@ -64,20 +65,20 @@ public class CardController : ControllerBase
         return Ok(response);
     }
 
-    //[HttpGet("GetByCode/{code}")]
-    //public async Task<IActionResult> Get(string code)
-    //{
-    //    var card = await _cardManager.GetCardByCode(code, CancellationToken.None);
+    [HttpGet("ByCode/{code}")]
+    public async Task<IActionResult> Get(string code)
+    {
+        var card = await _cardManager.GetByCodeAsync(code);
 
-    //    if (card is null)
-    //    {
-    //        return NotFound();
-    //    }
+        if (card is null)
+        {
+            throw new ElementNotfFoundException();
+        }
 
-    //    var response = _mapper.Map<CardResponse>(card);
+        var response = _mapper.Map<CardResponse>(card);
 
-    //    return Ok(response);
-    //}
+        return Ok(response);
+    }
 
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] CreateCardRequest request)
@@ -86,7 +87,7 @@ public class CardController : ControllerBase
 
         if (profile is null)
         {
-            return BadRequest("Profile does not exist");
+            throw new ElementNotfFoundException("Profile does not exist");
         }
 
         var card = await _cardManager.GetByProfileIdAsync(request.ProfileId);
@@ -117,14 +118,14 @@ public class CardController : ControllerBase
 
         if (profile is null)
         {
-            return BadRequest("Profile does not exist");
+            throw new ElementNotfFoundException("Profile does not exist");
         }
 
         var card = await _cardManager.GetByIdAsync(id);
 
         if (card is null)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         var newCard = _mapper.Map<Card>(request);

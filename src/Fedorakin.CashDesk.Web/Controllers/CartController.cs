@@ -2,6 +2,7 @@
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Logic.Interfaces.Services;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
+using Fedorakin.CashDesk.Web.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
@@ -14,14 +15,22 @@ public class CartController : ControllerBase
     private readonly IStockManager _stockManager;
     private readonly IDataStateManager _dataStateManager;
     private readonly ICacheService _cacheService;
+    private readonly ICartService _cartService;
     private readonly IMapper _mapper;
 
-    public CartController(ICartManager cartManager, IStockManager stockManager, IDataStateManager dataStateManager, ICacheService cacheService, IMapper mapper)
+    public CartController(
+        ICartManager cartManager, 
+        IStockManager stockManager, 
+        IDataStateManager dataStateManager, 
+        ICacheService cacheService, 
+        ICartService cartService, 
+        IMapper mapper)
     {
         _cartManager = cartManager ?? throw new ArgumentNullException(nameof(cartManager));
         _stockManager = stockManager ?? throw new ArgumentNullException(nameof(stockManager));
         _dataStateManager = dataStateManager ?? throw new ArgumentNullException(nameof(dataStateManager));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
+        _cartService = cartService ?? throw new ArgumentNullException(nameof(cartService));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
@@ -30,19 +39,19 @@ public class CartController : ControllerBase
     {
         if (page < 1)
         {
-            return BadRequest("Page must be greater than 1");
+            throw new InvalidPageNumberException();
         }
 
         if (pageSize < 1)
         {
-            return BadRequest("Page size must be greater than 1");
+            throw new InvalidPageSizeException();
         }
 
         var carts = await _cartManager.GetRangeAsync(page, pageSize);
 
         if (carts.Count == 0)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         var response = _mapper.Map<List<CartResponse>>(carts);
@@ -57,7 +66,7 @@ public class CartController : ControllerBase
 
         if (stock is null)
         {
-            return NotFound("Product is not exist");
+            throw new ElementNotfFoundException("Product is not exist");
         }
 
         if (stock.Count <= 0)
@@ -67,10 +76,10 @@ public class CartController : ControllerBase
 
         if (!_cacheService.TryGetCart(number, out var cart))
         {
-            return BadRequest("Can`t find cart");
+            throw new ElementNotfFoundException("Cart does not exist");
         }
 
-        cart.Products.Add(stock.Product);
+        _cartService.AddProduct(cart, stock.Product);
 
         _cacheService.SetCart(cart);
 
@@ -91,7 +100,7 @@ public class CartController : ControllerBase
 
         if (cart is null)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         var response = _mapper.Map<CartResponse>(cart);

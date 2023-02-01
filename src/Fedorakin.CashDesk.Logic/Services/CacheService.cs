@@ -1,13 +1,7 @@
 ﻿using Fedorakin.CashDesk.Data.Models;
 using Fedorakin.CashDesk.Logic.Interfaces.Providers;
 using Fedorakin.CashDesk.Logic.Interfaces.Services;
-using Fedorakin.CashDesk.Logic.Providers;
 using Microsoft.Extensions.Caching.Memory;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Fedorakin.CashDesk.Logic.Services;
 

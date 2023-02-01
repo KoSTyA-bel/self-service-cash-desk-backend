@@ -1,10 +1,13 @@
-﻿using System.Net;
+﻿using Fedorakin.CashDesk.Web.Exceptions;
+using FluentValidation;
+using System.Net;
 using System.Text.Json;
 
 namespace Fedorakin.CashDesk.Web.Middlewares;
 
 public class ErrorHandler
 {
+    private const string ContentType = "application/json";
     private readonly RequestDelegate _next;
 
     public ErrorHandler(RequestDelegate next)
@@ -21,17 +24,25 @@ public class ErrorHandler
         catch (Exception error)
         {
             var response = context.Response;
-            response.ContentType = "application/json";
+            response.ContentType = ContentType;
 
-            switch (error)
-            {
-                default:
-                    response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                    break;
-            }
+            var tuple = GetStatusAndMessage(error);
+            response.StatusCode = tuple.status;
 
-            var result = JsonSerializer.Serialize(new { message = error?.Message });
+            var result = JsonSerializer.Serialize(new { message = tuple.message });
             await response.WriteAsync(result);
         }
     }
+
+    private (int status, string message) GetStatusAndMessage(Exception exception) =>
+        exception switch
+        {
+            InvalidPageNumberException => ((int)HttpStatusCode.BadRequest, exception.Message),
+            InvalidPageSizeException => ((int)HttpStatusCode.BadRequest, exception.Message),
+            SelfCheckoutBusyException => ((int)HttpStatusCode.BadRequest, exception.Message),
+            SelfCheckoutUnactiveException => ((int)HttpStatusCode.BadRequest, exception.Message),
+            ElementNotfFoundException => ((int)HttpStatusCode.NotFound, exception.Message),
+            ValidationException => ((int)HttpStatusCode.BadRequest, exception.Message),
+            _ => ((int)HttpStatusCode.InternalServerError, exception.Message)
+        };
 }

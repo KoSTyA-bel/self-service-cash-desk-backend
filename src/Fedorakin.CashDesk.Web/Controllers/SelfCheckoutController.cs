@@ -1,10 +1,11 @@
 ﻿using AutoMapper;
 using Fedorakin.CashDesk.Data.Models;
-using Fedorakin.CashDesk.Logic.Exceptions;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Logic.Interfaces.Services;
+using Fedorakin.CashDesk.Logic.Services;
 using Fedorakin.CashDesk.Web.Contracts.Requests.SelfCheckout;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
+using Fedorakin.CashDesk.Web.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
@@ -20,9 +21,23 @@ public class SelfCheckoutController : ControllerBase
     private readonly IStockManager _stockManager;
     private readonly IDataStateManager _dataStateManager;
     private readonly ICacheService _cache;
+    private readonly ISelfCheckoutService _selfCheckoutService;
+    private readonly ICheckService _checkService;
+    private readonly ICartService _cartService;
     private readonly IMapper _mapper;
 
-    public SelfCheckoutController(ISelfCheckoutManager selfCheckoutManager, ICartManager cartManager, ICardManager cardManager, ICheckManager checkManager, IStockManager stockManager, IDataStateManager dataStateManager, ICacheService cache, IMapper mapper)
+    public SelfCheckoutController(
+        ISelfCheckoutManager selfCheckoutManager, 
+        ICartManager cartManager, 
+        ICardManager cardManager, 
+        ICheckManager checkManager, 
+        IStockManager stockManager, 
+        IDataStateManager dataStateManager, 
+        ICacheService cache, 
+        ISelfCheckoutService selfCheckoutService,
+        ICheckService checkService,
+        ICartService cartService,
+        IMapper mapper)
     {
         _selfCheckoutManager = selfCheckoutManager ?? throw new ArgumentNullException(nameof(selfCheckoutManager));
         _cartManager = cartManager ?? throw new ArgumentNullException(nameof(cartManager));
@@ -31,6 +46,9 @@ public class SelfCheckoutController : ControllerBase
         _stockManager = stockManager ?? throw new ArgumentNullException(nameof(stockManager));
         _dataStateManager = dataStateManager ?? throw new ArgumentNullException(nameof(dataStateManager));
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+        _selfCheckoutService = selfCheckoutService ?? throw new ArgumentNullException(nameof(selfCheckoutService));
+        _checkService = checkService ?? throw new ArgumentNullException(nameof(checkService));
+        _cartService = cartService ?? throw new ArgumentNullException(nameof(cartService));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
@@ -39,20 +57,22 @@ public class SelfCheckoutController : ControllerBase
     {
         if (page < 1)
         {
-            return BadRequest("Page must be greater than 1");
+            throw new InvalidPageNumberException();
         }
 
         if (pageSize < 1)
         {
-            return BadRequest("Page size must be greater than 1");
+            throw new InvalidPageSizeException();
         }
 
         var selfCheckouts = await _selfCheckoutManager.GetRangeAsync(page, pageSize);
 
         if (selfCheckouts.Count == 0)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
+
+        _selfCheckoutService.InsertSelfCheckoutsFromCache(selfCheckouts);
 
         var response = _mapper.Map<List<SelfCheckoutResponse>>(selfCheckouts);
 
@@ -62,11 +82,14 @@ public class SelfCheckoutController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(int id)
     {
-        var selfCheckout = await _selfCheckoutManager.GetByIdAsync(id);
+        if (!_cache.TryGetSelfCheckout(id, out var selfCheckout))
+        {
+            selfCheckout = await _selfCheckoutManager.GetByIdAsync(id);
+        }       
 
         if (selfCheckout is null)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         var response = _mapper.Map<SelfCheckoutResponse>(selfCheckout);
@@ -93,12 +116,12 @@ public class SelfCheckoutController : ControllerBase
 
         if (selfCheckout is null)
         {
-            return NotFound("Can`t find self checkout");
+            throw new ElementNotfFoundException("Can`t find self checkout");
         }
 
-        if (selfCheckout.ActiveNumber == Guid.Empty)
+        if (selfCheckout.ActiveNumber == Guid.Empty || !selfCheckout.IsBusy)
         {
-            return BadRequest("Self checkout is not busy");
+            throw new SelfCheckoutFreeException();
         }
 
         if (selfCheckout.ActiveNumber != request.CartNumber)
@@ -110,12 +133,12 @@ public class SelfCheckoutController : ControllerBase
 
         if (cart is null)
         {
-            return NotFound("Can`t find cart");
+            throw new ElementNotfFoundException("Can`t find cart");
         }
 
         if (cart.Products.Count == 0)
         {
-            return BadRequest("Cart is empty");
+            throw new CartEmptyException();
         }
 
         var check = new Check
@@ -163,6 +186,9 @@ public class SelfCheckoutController : ControllerBase
 
         cart.Products = products;
 
+        _cartService.SetDateTime(cart);
+        _checkService.SetDateTime(check);
+
         await _cartManager.AddAsync(cart);
         await _checkManager.AddAsync(check);
 
@@ -181,7 +207,7 @@ public class SelfCheckoutController : ControllerBase
 
         if (selfCheckout is null)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         selfCheckout = _mapper.Map<SelfCheckout>(request);
@@ -201,23 +227,22 @@ public class SelfCheckoutController : ControllerBase
 
         if (selfCheckout is not null)
         {
-            return BadRequest("Self checkout is busy");
+            throw new SelfCheckoutBusyException();
         }
 
         selfCheckout = await _selfCheckoutManager.GetByIdAsync(id);
 
         if (selfCheckout is null)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         if (!selfCheckout.IsActive)
         {
-            return BadRequest("Self checkout is not active");
+            throw new SelfCheckoutUnactiveException();
         }
 
-        selfCheckout.ActiveNumber = Guid.NewGuid();
-        selfCheckout.IsBusy= true;
+        _selfCheckoutService.TakeSelfCheckout(selfCheckout);
 
         var cart = new Cart()
         {

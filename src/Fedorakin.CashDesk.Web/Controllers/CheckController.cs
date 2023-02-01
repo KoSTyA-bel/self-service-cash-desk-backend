@@ -2,6 +2,7 @@
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Logic.Interfaces.Services;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
+using Fedorakin.CashDesk.Web.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
@@ -24,19 +25,19 @@ public class CheckController : ControllerBase
     {
         if (page < 1)
         {
-            return BadRequest("Page must be greater than 1");
+            throw new InvalidPageNumberException();
         }
 
         if (pageSize < 1)
         {
-            return BadRequest("Page size must be greater than 1");
+            throw new InvalidPageSizeException();
         }
 
         var checks = await _checkManager.GetRangeAsync(page, pageSize);
 
         if (checks.Count == 0)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         var response = _mapper.Map<List<CheckResponse>>(checks);
@@ -47,16 +48,11 @@ public class CheckController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(int id)
     {
-        if (id <= 0)
-        {
-            return BadRequest();
-        }
-
         var check = await _checkManager.GetByIdAsync(id);
 
         if (check is null)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         var response = _mapper.Map<CheckResponse>(check);

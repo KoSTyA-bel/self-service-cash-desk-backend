@@ -29,10 +29,11 @@ public class ProductManager : IProductManager
         return _context.Products.AsNoTracking().FirstOrDefaultAsync(x => x.Id== id);
     }
 
-    public Task<List<Product>> GetRangeAsync(int page, int pageSize)
+    public Task<List<Product>> GetRangeAsync(int page, int pageSize, string name, string barcode)
     {
         return _context.Products
             .AsNoTracking()
+            .Where(x => x.Name.Contains(name) && x.Barcode.Contains(barcode))
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

@@ -3,6 +3,8 @@ using Fedorakin.CashDesk.Data.Models;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Stock;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
+using Fedorakin.CashDesk.Web.Exceptions;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
@@ -13,12 +15,14 @@ public class StockController : ControllerBase
 {
     private readonly IStockManager _stockManager;
     private readonly IDataStateManager _dataStateManager;
+    private readonly IValidator<Stock> _stockValidator;
     private readonly IMapper _mapper;
 
-    public StockController(IStockManager stockManager, IDataStateManager dataStateManager, IMapper mapper)
+    public StockController(IStockManager stockManager, IDataStateManager dataStateManager, IValidator<Stock> stockValidator, IMapper mapper)
     {
         _stockManager = stockManager ?? throw new ArgumentNullException(nameof(stockManager));
         _dataStateManager = dataStateManager ?? throw new ArgumentNullException(nameof(dataStateManager));
+        _stockValidator = stockValidator ?? throw new ArgumentNullException(nameof(stockValidator));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
@@ -27,19 +31,19 @@ public class StockController : ControllerBase
     {
         if (page < 1)
         {
-            return BadRequest("Page must be greater than 1");
+            throw new InvalidPageNumberException();
         }
 
         if (pageSize < 1)
         {
-            return BadRequest("Page size must be greater than 1");
+            throw new InvalidPageSizeException();
         }
 
         var stocks = await _stockManager.GetRangeAsync(page, pageSize);
 
         if (stocks.Count == 0)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         var response = _mapper.Map<List<StockResponse>>(stocks);
@@ -54,7 +58,7 @@ public class StockController : ControllerBase
 
         if (stock is null)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         var response = _mapper.Map<StockResponse>(stock);
@@ -66,6 +70,8 @@ public class StockController : ControllerBase
     public async Task<IActionResult> Post([FromBody] CreateStockRequest request)
     {
         var stock = _mapper.Map<Stock>(request);
+
+        _stockValidator.ValidateAndThrow(stock);
 
         await _stockManager.AddAsync(stock);
 
@@ -81,11 +87,13 @@ public class StockController : ControllerBase
 
         if (stock is null)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         stock = _mapper.Map<Stock>(request);
         stock.Id = id;
+
+        _stockValidator.ValidateAndThrow(stock);
 
         await _stockManager.UpdateAsync(stock);
 
@@ -98,7 +106,7 @@ public class StockController : ControllerBase
     public async Task<IActionResult> Delete(int id)
     {
         var stock = await _stockManager.GetByIdAsync(id);
-
+        
         if (stock is not null)
         {
             await _stockManager.DeleteAsync(stock);

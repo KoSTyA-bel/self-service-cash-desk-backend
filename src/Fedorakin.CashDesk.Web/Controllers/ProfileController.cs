@@ -2,6 +2,7 @@
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Profile;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
+using Fedorakin.CashDesk.Web.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
@@ -15,7 +16,11 @@ public class ProfileController : ControllerBase
     private readonly IDataStateManager _dataStateManager;
     private readonly AutoMapper.IMapper _mapper;
 
-    public ProfileController(IProfileManager profileManager, IRoleManager roleManager, IDataStateManager dataStateManager, AutoMapper.IMapper mapper)
+    public ProfileController(
+        IProfileManager profileManager, 
+        IRoleManager roleManager, 
+        IDataStateManager dataStateManager, 
+        AutoMapper.IMapper mapper)
     {
         _profileManager = profileManager ?? throw new ArgumentNullException(nameof(profileManager));
         _roleManager = roleManager ?? throw new ArgumentNullException(nameof(roleManager));
@@ -28,19 +33,19 @@ public class ProfileController : ControllerBase
     {
         if (page < 1)
         {
-            return BadRequest("Page must be greater than 1");
+            throw new InvalidPageNumberException();
         }
 
         if (pageSize < 1)
         {
-            return BadRequest("Page size must be greater than 1");
+            throw new InvalidPageSizeException();
         }
 
         var profiles = await _profileManager.GetRangeAsync(page, pageSize);
 
         if (profiles.Count == 0)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         var response = _mapper.Map<List<ProfileResponse>>(profiles);
@@ -55,7 +60,7 @@ public class ProfileController : ControllerBase
 
         if (profile is null)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         var response = _mapper.Map<ProfileResponse>(profile);
@@ -77,7 +82,7 @@ public class ProfileController : ControllerBase
 
         if (role is null)
         {
-            return BadRequest("Role does not exist");
+            throw new ElementNotfFoundException("Role does not exist");
         }
 
         await _profileManager.AddAsync(profile);
@@ -94,7 +99,7 @@ public class ProfileController : ControllerBase
 
         if (profile is null)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         profile = _mapper.Map<Profile>(request);
@@ -109,7 +114,7 @@ public class ProfileController : ControllerBase
 
         if (role is null)
         {
-            return BadRequest("Role does not exist");
+            throw new ElementNotfFoundException("Role does not exist");
         }
 
         await _profileManager.UpdateAsync(profile);
