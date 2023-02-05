@@ -8,7 +8,7 @@ public interface IStockManager
 
     Task<Stock?> GetStockForProductAsync(int productId);
 
-    Task<List<Stock>> GetRangeAsync(int page, int pageSize);
+    Task<List<Stock>> GetRangeAsync(int page, int pageSize, string name, string barcode);
 
     Task AddAsync(Stock model);
 

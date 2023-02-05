@@ -27,7 +27,7 @@ public class StockController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get(int page, int pageSize)
+    public async Task<IActionResult> Get(int page, int pageSize, string? name, string? barcode)
     {
         if (page < 1)
         {
@@ -39,7 +39,10 @@ public class StockController : ControllerBase
             throw new InvalidPageSizeException();
         }
 
-        var stocks = await _stockManager.GetRangeAsync(page, pageSize);
+        name = name ?? string.Empty;
+        barcode = barcode ?? string.Empty;
+
+        var stocks = await _stockManager.GetRangeAsync(page, pageSize, name, barcode);
 
         if (stocks.Count == 0)
         {

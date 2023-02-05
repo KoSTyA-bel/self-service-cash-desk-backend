@@ -31,11 +31,12 @@ public class StockManager : IStockManager
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
-    public Task<List<Stock>> GetRangeAsync(int page, int pageSize)
+    public Task<List<Stock>> GetRangeAsync(int page, int pageSize, string name, string barcode)
     {
         return _context.Stocks
             .AsNoTracking()
             .Include(x => x.Product)
+            .Where(x => x.Product.Name.Contains(name) && x.Product.Barcode.Contains(barcode))
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
