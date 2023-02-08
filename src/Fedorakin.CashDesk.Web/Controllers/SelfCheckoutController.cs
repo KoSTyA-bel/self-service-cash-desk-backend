@@ -255,6 +255,25 @@ public class SelfCheckoutController : ControllerBase
         return Ok(cart.Number);
     }
 
+    [HttpPost("Free")]
+    public async Task<IActionResult> MakeSelfCheckoutFree(MakeSelfCheckoutFreeRequest request)
+    {
+        if (!_cache.TryGetSelfCheckout(request.Id, out var selfCheckout))
+        {
+            throw new ElementNotfFoundException();
+        }
+
+        if (selfCheckout.ActiveNumber != request.CartNumber)
+        {
+            throw new ElementNotfFoundException();
+        }
+        
+        _cache.RemoveSelfCheckout(request.Id);
+        _cache.RemoveCart(request.CartNumber);
+
+        return Ok();
+    }
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
