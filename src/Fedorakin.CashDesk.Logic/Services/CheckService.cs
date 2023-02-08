@@ -1,25 +1,20 @@
-﻿using Fedorakin.CashDesk.Logic.Interfaces;
+﻿using Fedorakin.CashDesk.Data.Models;
 using Fedorakin.CashDesk.Logic.Interfaces.Providers;
-using Fedorakin.CashDesk.Logic.Interfaces.Repositories;
 using Fedorakin.CashDesk.Logic.Interfaces.Services;
-using Fedorakin.CashDesk.Logic.Models;
 
 namespace Fedorakin.CashDesk.Logic.Services;
 
-public class CheckService : ServiceBase<Check>, ICheckService
+public class CheckService : ICheckService
 {
     private readonly IDateTimeProvider _dateTimeProvider;
 
-    public CheckService(ICheckProvider provider, ICheckRepository repository, IDateTimeProvider dateTimeProvider, IUnitOfWork unitOfWork) 
-        : base(provider, repository, unitOfWork)
+    public CheckService(IDateTimeProvider dateTimeProvider)
     {
         _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
     }
 
-    public override Task Create(Check entity, CancellationToken cancellationToken)
+    public void SetDateTime(Check check)
     {
-        entity.Date = _dateTimeProvider.Now();
-
-        return base.Create(entity, cancellationToken);
+        check.Date = _dateTimeProvider.Now();
     }
 }

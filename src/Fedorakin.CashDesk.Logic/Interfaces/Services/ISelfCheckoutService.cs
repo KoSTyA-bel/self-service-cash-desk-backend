@@ -1,10 +1,10 @@
-﻿using Fedorakin.CashDesk.Logic.Models;
+﻿using Fedorakin.CashDesk.Data.Models;
 
 namespace Fedorakin.CashDesk.Logic.Interfaces.Services;
 
-public interface ISelfCheckoutService : IBaseService<SelfCheckout>
+public interface ISelfCheckoutService
 {
-    public Task<Guid> TakeSelfCheckout(int id, CancellationToken cancellationToken);
+    void InsertSelfCheckoutsFromCache(List<SelfCheckout> list);
 
-    public Task Free(int id, CancellationToken cancellationToken);
+    void TakeSelfCheckout(SelfCheckout selfCheckout);
 }

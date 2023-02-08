@@ -1,6 +1,4 @@
-﻿using Fedorakin.CashDesk.Logic.Models;
-
-namespace Fedorakin.CashDesk.Web.Contracts.Responses;
+﻿namespace Fedorakin.CashDesk.Web.Contracts.Responses;
 
 public class CheckResponse
 {

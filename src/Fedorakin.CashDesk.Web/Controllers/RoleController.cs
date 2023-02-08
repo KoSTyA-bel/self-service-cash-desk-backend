@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
-using Azure.Core;
-using Fedorakin.CashDesk.Logic.Interfaces.Services;
-using Fedorakin.CashDesk.Logic.Models;
+using Fedorakin.CashDesk.Data.Models;
+using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Role;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
+using Fedorakin.CashDesk.Web.Exceptions;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
@@ -12,12 +13,16 @@ namespace Fedorakin.CashDesk.Web.Controllers;
 [ApiController]
 public class RoleController : ControllerBase
 {
-    private readonly IRoleService _service;
+    private readonly IRoleManager _roleManager;
+    private readonly IDataStateManager _dataStateManager;
+    private readonly IValidator<Role> _roleValidator;
     private readonly IMapper _mapper;
 
-    public RoleController(IRoleService service, IMapper mapper)
+    public RoleController(IRoleManager roleManager, IDataStateManager dataStateManager, IValidator<Role> roleValidator, IMapper mapper)
     {
-        _service = service ?? throw new ArgumentNullException(nameof(service));
+        _roleManager = roleManager ?? throw new ArgumentNullException(nameof(roleManager));
+        _dataStateManager = dataStateManager ?? throw new ArgumentNullException(nameof(dataStateManager));
+        _roleValidator = roleValidator ?? throw new ArgumentNullException(nameof(roleValidator));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
@@ -26,19 +31,19 @@ public class RoleController : ControllerBase
     {
         if (page < 1)
         {
-            return BadRequest("Page must be greater than 1");
+            throw new InvalidPageNumberException();
         }
 
         if (pageSize < 1)
         {
-            return BadRequest("Page size must be greater than 1");
+            throw new InvalidPageSizeException();
         }
 
-        var roles = await _service.GetRange(page, pageSize, CancellationToken.None);
+        var roles = await _roleManager.GetRangeAsync(page, pageSize);
 
         if (roles.Count == 0)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         var response = _mapper.Map<List<RoleResponse>>(roles);
@@ -49,11 +54,11 @@ public class RoleController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(int id)
     {
-        var role = await _service.Get(id, CancellationToken.None);
+        var role = await _roleManager.GetByIdAsync(id);
 
         if (role is null)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         var response = _mapper.Map<RoleResponse>(role);
@@ -66,12 +71,11 @@ public class RoleController : ControllerBase
     {
         var role = _mapper.Map<Role>(request);
         
-        if (!IsRoleDataValid(role))
-        {
-            return BadRequest("Invalid data");
-        }
+        _roleValidator.ValidateAndThrow(role);
 
-        await _service.Create(role, CancellationToken.None);
+        await _roleManager.AddAsync(role);
+
+        await _dataStateManager.CommitChangesAsync();
 
         return Ok(role.Id);
     }
@@ -79,22 +83,21 @@ public class RoleController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Put(int id, [FromBody] UpdateRoleRequest request)
     {
-        var role = await _service.Get(id, CancellationToken.None);
+        var role = await _roleManager.GetByIdAsync(id);
 
         if (role is null)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         role = _mapper.Map<Role>(request);
         role.Id = id;
 
-        if (!IsRoleDataValid(role))
-        {
-            return BadRequest("Invalid data");
-        }
+        _roleValidator.ValidateAndThrow(role);
 
-        await _service.Update(role, CancellationToken.None);
+        await _roleManager.UpdateAsync(role);
+
+        await _dataStateManager.CommitChangesAsync();
 
         return Ok();
     }
@@ -102,13 +105,15 @@ public class RoleController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        await _service.Delete(id, CancellationToken.None);
+        var role = await _roleManager.GetByIdAsync(id);
+
+        if (role is not null)
+        {
+            await _roleManager.DeleteAsync(role);
+
+            await _dataStateManager.CommitChangesAsync();
+        }        
 
         return Ok();
-    }
-
-    private bool IsRoleDataValid(Role role)
-    {
-        return !(role.Name.Length > 50);
     }
 }

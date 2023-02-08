@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
-using Fedorakin.CashDesk.Logic.Interfaces.Services;
-using Fedorakin.CashDesk.Logic.Models;
+using Fedorakin.CashDesk.Data.Models;
+using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Stock;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
+using Fedorakin.CashDesk.Web.Exceptions;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
@@ -11,33 +13,40 @@ namespace Fedorakin.CashDesk.Web.Controllers;
 [ApiController]
 public class StockController : ControllerBase
 {
-    private readonly IStockService _service;
+    private readonly IStockManager _stockManager;
+    private readonly IDataStateManager _dataStateManager;
+    private readonly IValidator<Stock> _stockValidator;
     private readonly IMapper _mapper;
 
-    public StockController(IStockService service, IMapper mapper)
+    public StockController(IStockManager stockManager, IDataStateManager dataStateManager, IValidator<Stock> stockValidator, IMapper mapper)
     {
-        _service = service ?? throw new ArgumentNullException(nameof(service));
+        _stockManager = stockManager ?? throw new ArgumentNullException(nameof(stockManager));
+        _dataStateManager = dataStateManager ?? throw new ArgumentNullException(nameof(dataStateManager));
+        _stockValidator = stockValidator ?? throw new ArgumentNullException(nameof(stockValidator));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get(int page, int pageSize)
+    public async Task<IActionResult> Get(int page, int pageSize, string? name, string? barcode)
     {
         if (page < 1)
         {
-            return BadRequest("Page must be greater than 1");
+            throw new InvalidPageNumberException();
         }
 
         if (pageSize < 1)
         {
-            return BadRequest("Page size must be greater than 1");
+            throw new InvalidPageSizeException();
         }
 
-        var stocks = await _service.GetRange(page, pageSize, CancellationToken.None);
+        name = name ?? string.Empty;
+        barcode = barcode ?? string.Empty;
+
+        var stocks = await _stockManager.GetRangeAsync(page, pageSize, name, barcode);
 
         if (stocks.Count == 0)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         var response = _mapper.Map<List<StockResponse>>(stocks);
@@ -48,11 +57,11 @@ public class StockController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(int id)
     {
-        var stock = await _service.Get(id, CancellationToken.None);
+        var stock = await _stockManager.GetByIdAsync(id);
 
         if (stock is null)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         var response = _mapper.Map<StockResponse>(stock);
@@ -65,7 +74,11 @@ public class StockController : ControllerBase
     {
         var stock = _mapper.Map<Stock>(request);
 
-        await _service.Create(stock, CancellationToken.None);
+        _stockValidator.ValidateAndThrow(stock);
+
+        await _stockManager.AddAsync(stock);
+
+        await _dataStateManager.CommitChangesAsync();
 
         return Ok(stock.Id);
     }
@@ -73,17 +86,21 @@ public class StockController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Put(int id, [FromBody] UpdateStockRequest request)
     {
-        var stock = await _service.Get(id, CancellationToken.None);
+        var stock = await _stockManager.GetByIdAsync(id);
 
         if (stock is null)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         stock = _mapper.Map<Stock>(request);
         stock.Id = id;
 
-        await _service.Update(stock, CancellationToken.None);
+        _stockValidator.ValidateAndThrow(stock);
+
+        await _stockManager.UpdateAsync(stock);
+
+        await _dataStateManager.CommitChangesAsync();
 
         return Ok(stock.Id);
     }
@@ -91,7 +108,14 @@ public class StockController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        await _service.Delete(id, CancellationToken.None);
+        var stock = await _stockManager.GetByIdAsync(id);
+        
+        if (stock is not null)
+        {
+            await _stockManager.DeleteAsync(stock);
+
+            await _dataStateManager.CommitChangesAsync();
+        }        
 
         return Ok();
     }

@@ -1,7 +1,8 @@
-﻿using Fedorakin.CashDesk.Logic.Interfaces.Services;
-using Fedorakin.CashDesk.Logic.Models;
+﻿using Fedorakin.CashDesk.Data.Models;
+using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Profile;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
+using Fedorakin.CashDesk.Web.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
@@ -10,14 +11,20 @@ namespace Fedorakin.CashDesk.Web.Controllers;
 [ApiController]
 public class ProfileController : ControllerBase
 {
-    private readonly IProfileService _profileService;
-    private readonly IRoleService _roleService;
+    private readonly IProfileManager _profileManager;
+    private readonly IRoleManager _roleManager;
+    private readonly IDataStateManager _dataStateManager;
     private readonly AutoMapper.IMapper _mapper;
 
-    public ProfileController(IProfileService profileService, IRoleService roleService, AutoMapper.IMapper mapper)
+    public ProfileController(
+        IProfileManager profileManager, 
+        IRoleManager roleManager, 
+        IDataStateManager dataStateManager, 
+        AutoMapper.IMapper mapper)
     {
-        _profileService = profileService ?? throw new ArgumentNullException(nameof(profileService));
-        _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
+        _profileManager = profileManager ?? throw new ArgumentNullException(nameof(profileManager));
+        _roleManager = roleManager ?? throw new ArgumentNullException(nameof(roleManager));
+        _dataStateManager = dataStateManager ?? throw new ArgumentNullException(nameof(dataStateManager));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
@@ -26,19 +33,19 @@ public class ProfileController : ControllerBase
     {
         if (page < 1)
         {
-            return BadRequest("Page must be greater than 1");
+            throw new InvalidPageNumberException();
         }
 
         if (pageSize < 1)
         {
-            return BadRequest("Page size must be greater than 1");
+            throw new InvalidPageSizeException();
         }
 
-        var profiles = await _profileService.GetRange(page, pageSize, CancellationToken.None);
+        var profiles = await _profileManager.GetRangeAsync(page, pageSize);
 
         if (profiles.Count == 0)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         var response = _mapper.Map<List<ProfileResponse>>(profiles);
@@ -49,11 +56,11 @@ public class ProfileController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(int id)
     {
-        var profile = await _profileService.Get(id, CancellationToken.None);
+        var profile = await _profileManager.GetByIdAsync(id);
 
         if (profile is null)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         var response = _mapper.Map<ProfileResponse>(profile);
@@ -71,14 +78,16 @@ public class ProfileController : ControllerBase
             return BadRequest("Invalid data");
         }
 
-        var role = await _roleService.Get(profile.RoleId, CancellationToken.None);
+        var role = await _roleManager.GetByIdAsync(profile.RoleId);
 
         if (role is null)
         {
-            return BadRequest("Role does not exist");
+            throw new ElementNotfFoundException("Role does not exist");
         }
 
-        await _profileService.Create(profile, CancellationToken.None);
+        await _profileManager.AddAsync(profile);
+
+        await _dataStateManager.CommitChangesAsync();
 
         return Ok(profile.Id);
     }
@@ -86,11 +95,11 @@ public class ProfileController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Put(int id, [FromBody] UpdateProfileRequest request)
     {
-        var profile = await _profileService.Get(id, CancellationToken.None);
+        var profile = await _profileManager.GetByIdAsync(id);
 
         if (profile is null)
         {
-            return NotFound();
+            throw new ElementNotfFoundException();
         }
 
         profile = _mapper.Map<Profile>(request);
@@ -101,14 +110,16 @@ public class ProfileController : ControllerBase
             return BadRequest("Invalid data");
         }
 
-        var role = await _roleService.Get(profile.RoleId, CancellationToken.None);
+        var role = await _roleManager.GetByIdAsync(profile.RoleId);
 
         if (role is null)
         {
-            return BadRequest("Role does not exist");
+            throw new ElementNotfFoundException("Role does not exist");
         }
 
-        await _profileService.Update(profile, CancellationToken.None);
+        await _profileManager.UpdateAsync(profile);
+
+        await _dataStateManager.CommitChangesAsync();
 
         return Ok();
     }
@@ -116,7 +127,13 @@ public class ProfileController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        await _profileService.Delete(id, CancellationToken.None);
+        var profile = await _profileManager.GetByIdAsync(id);
+
+        if (profile is not null)
+        {
+            await _profileManager.DeleteAsync(profile);
+            await _dataStateManager.CommitChangesAsync();
+        }
 
         return Ok();
     }

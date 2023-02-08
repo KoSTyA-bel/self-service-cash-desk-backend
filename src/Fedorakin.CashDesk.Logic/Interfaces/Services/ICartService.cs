@@ -1,16 +1,10 @@
-﻿using Fedorakin.CashDesk.Logic.Models;
+﻿using Fedorakin.CashDesk.Data.Models;
 
 namespace Fedorakin.CashDesk.Logic.Interfaces.Services;
 
-public interface ICartService : IBaseService<Cart>
+public interface ICartService
 {
-    public void AddProductsToCart(Guid cartNumber, List<Product> products);
+    void SetDateTime(Cart cart);
 
-    public void AddProductToCart(Guid cartNumber, Product product);
-
-    public Task<Cart?> GetCachedCartByNumber(Guid cartNumber, CancellationToken cancellationToken);
-
-    public Task<Cart?> GetCartByNumber(Guid number, CancellationToken cancellationToken);
-
-    public Task<Cart?> TakeCart(Guid cartNumber, CancellationToken cancellationToken);
+    void AddProduct(Cart cart, Product product);
 }
