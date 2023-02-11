@@ -2,10 +2,12 @@
 using Fedorakin.CashDesk.Data.Models;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Logic.Interfaces.Services;
+using Fedorakin.CashDesk.Logic.Services;
 using Fedorakin.CashDesk.Web.Contracts.Requests.SelfCheckout;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Fedorakin.CashDesk.Web.Exceptions;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
 
@@ -71,7 +73,13 @@ public class SelfCheckoutController : ControllerBase
             throw new ElementNotFoundException();
         }
 
-        _selfCheckoutService.InsertSelfCheckoutsFromCache(selfCheckouts);
+        for (int i = 0; i < selfCheckouts.Count; i++)
+        {
+            if (_cache.TryGetSelfCheckout(selfCheckouts[i].Id, out SelfCheckout selfCheckout))
+            {
+                selfCheckouts[i] = selfCheckout;
+            }
+        }
 
         var response = _mapper.Map<List<SelfCheckoutResponse>>(selfCheckouts);
 
