@@ -1,17 +1,17 @@
-﻿using Fedorakin.CashDesk.Data.Models;
+﻿using Fedorakin.CashDesk.Web.Contracts.Requests.Product;
 using FluentValidation;
 
-namespace Fedorakin.CashDesk.Web.Validators;
+namespace Fedorakin.CashDesk.Web.Validators.Product;
 
-public class ProductValidator : AbstractValidator<Product>
+public class CreateProductRequestValidator : AbstractValidator<CreateProductRequest>
 {
-	public ProductValidator()
+	public CreateProductRequestValidator()
 	{
-		RuleFor(x => x.Name)
-			.NotEmpty().WithMessage("Product name can`t be empty")
-			.Length(1, 50).WithMessage("Invalid name length");
+        RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Product name can`t be empty")
+            .Length(1, 50).WithMessage("Invalid name length");
 
-		RuleFor(x => x.Description)
+        RuleFor(x => x.Description)
             .NotEmpty().WithMessage("Product description can`t be empty")
             .Length(1, 50).WithMessage("Invalid description length");
 
