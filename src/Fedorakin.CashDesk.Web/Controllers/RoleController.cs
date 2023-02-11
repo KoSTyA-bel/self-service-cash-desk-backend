@@ -43,7 +43,7 @@ public class RoleController : ControllerBase
 
         if (roles.Count == 0)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var response = _mapper.Map<List<RoleResponse>>(roles);
@@ -58,7 +58,7 @@ public class RoleController : ControllerBase
 
         if (role is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var response = _mapper.Map<RoleResponse>(role);
@@ -87,7 +87,7 @@ public class RoleController : ControllerBase
 
         if (role is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         role = _mapper.Map<Role>(request);

@@ -46,7 +46,7 @@ public class ProductController : ControllerBase
 
         if (products.Count == 0)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var response = _mapper.Map<List<ProductResponse>>(products);
@@ -61,7 +61,7 @@ public class ProductController : ControllerBase
 
         if (product is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var response = _mapper.Map<ProductResponse>(product);
@@ -90,7 +90,7 @@ public class ProductController : ControllerBase
 
         if (product is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         product = _mapper.Map<Product>(request);

@@ -46,7 +46,7 @@ public class StockController : ControllerBase
 
         if (stocks.Count == 0)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var response = _mapper.Map<List<StockResponse>>(stocks);
@@ -61,7 +61,7 @@ public class StockController : ControllerBase
 
         if (stock is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var response = _mapper.Map<StockResponse>(stock);
@@ -90,7 +90,7 @@ public class StockController : ControllerBase
 
         if (stock is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         stock = _mapper.Map<Stock>(request);

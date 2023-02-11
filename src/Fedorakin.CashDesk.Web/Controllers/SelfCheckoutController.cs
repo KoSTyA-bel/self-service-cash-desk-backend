@@ -68,7 +68,7 @@ public class SelfCheckoutController : ControllerBase
 
         if (selfCheckouts.Count == 0)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         _selfCheckoutService.InsertSelfCheckoutsFromCache(selfCheckouts);
@@ -88,7 +88,7 @@ public class SelfCheckoutController : ControllerBase
 
         if (selfCheckout is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var response = _mapper.Map<SelfCheckoutResponse>(selfCheckout);
@@ -115,7 +115,7 @@ public class SelfCheckoutController : ControllerBase
 
         if (selfCheckout is null)
         {
-            throw new ElementNotfFoundException("Can`t find self checkout");
+            throw new ElementNotFoundException("Can`t find self checkout");
         }
 
         if (selfCheckout.ActiveNumber == Guid.Empty || !selfCheckout.IsBusy)
@@ -132,7 +132,7 @@ public class SelfCheckoutController : ControllerBase
 
         if (cart is null)
         {
-            throw new ElementNotfFoundException("Can`t find cart");
+            throw new ElementNotFoundException("Can`t find cart");
         }
 
         if (cart.Products.Count == 0)
@@ -206,7 +206,7 @@ public class SelfCheckoutController : ControllerBase
 
         if (selfCheckout is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         selfCheckout = _mapper.Map<SelfCheckout>(request);
@@ -233,7 +233,7 @@ public class SelfCheckoutController : ControllerBase
 
         if (selfCheckout is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         if (!selfCheckout.IsActive)
@@ -259,12 +259,12 @@ public class SelfCheckoutController : ControllerBase
     {
         if (!_cache.TryGetSelfCheckout(request.Id, out var selfCheckout))
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         if (selfCheckout.ActiveNumber != request.CartNumber)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
         
         _cache.RemoveSelfCheckout(request.Id);

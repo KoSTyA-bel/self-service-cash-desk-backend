@@ -51,7 +51,7 @@ public class CartController : ControllerBase
 
         if (carts.Count == 0)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var response = _mapper.Map<List<CartResponse>>(carts);
@@ -66,7 +66,7 @@ public class CartController : ControllerBase
 
         if (stock is null)
         {
-            throw new ElementNotfFoundException("Product is not exist");
+            throw new ElementNotFoundException("Product is not exist");
         }
 
         if (stock.Count <= 0)
@@ -76,7 +76,7 @@ public class CartController : ControllerBase
 
         if (!_cacheService.TryGetCart(number, out var cart))
         {
-            throw new ElementNotfFoundException("Cart does not exist");
+            throw new ElementNotFoundException("Cart does not exist");
         }
 
         _cartService.AddProduct(cart, stock.Product);
@@ -100,7 +100,7 @@ public class CartController : ControllerBase
 
         if (cart is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var response = _mapper.Map<CartResponse>(cart);

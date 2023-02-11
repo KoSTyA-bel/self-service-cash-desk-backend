@@ -41,7 +41,7 @@ public class ErrorHandler
             InvalidPageSizeException => ((int)HttpStatusCode.BadRequest, exception.Message),
             SelfCheckoutBusyException => ((int)HttpStatusCode.BadRequest, exception.Message),
             SelfCheckoutUnactiveException => ((int)HttpStatusCode.BadRequest, exception.Message),
-            ElementNotfFoundException => ((int)HttpStatusCode.NotFound, exception.Message),
+            ElementNotFoundException => ((int)HttpStatusCode.NotFound, exception.Message),
             ValidationException => ((int)HttpStatusCode.BadRequest, exception.Message),
             _ => ((int)HttpStatusCode.InternalServerError, exception.Message)
         };

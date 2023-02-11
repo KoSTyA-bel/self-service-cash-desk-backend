@@ -37,7 +37,7 @@ public class CheckController : ControllerBase
 
         if (checks.Count == 0)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var response = _mapper.Map<List<CheckResponse>>(checks);
@@ -52,7 +52,7 @@ public class CheckController : ControllerBase
 
         if (check is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var response = _mapper.Map<CheckResponse>(check);

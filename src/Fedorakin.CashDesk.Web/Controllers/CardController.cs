@@ -42,7 +42,7 @@ public class CardController : ControllerBase
 
         if (cards.Count == 0)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var response = _mapper.Map<List<CardResponse>>(cards);
@@ -57,7 +57,7 @@ public class CardController : ControllerBase
 
         if (card is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var response = _mapper.Map<CardResponse>(card);
@@ -72,7 +72,7 @@ public class CardController : ControllerBase
 
         if (card is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var response = _mapper.Map<CardResponse>(card);
@@ -87,7 +87,7 @@ public class CardController : ControllerBase
 
         if (profile is null)
         {
-            throw new ElementNotfFoundException("Profile does not exist");
+            throw new ElementNotFoundException("Profile does not exist");
         }
 
         var card = await _cardManager.GetByProfileIdAsync(request.ProfileId);
@@ -118,14 +118,14 @@ public class CardController : ControllerBase
 
         if (profile is null)
         {
-            throw new ElementNotfFoundException("Profile does not exist");
+            throw new ElementNotFoundException("Profile does not exist");
         }
 
         var card = await _cardManager.GetByIdAsync(id);
 
         if (card is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var newCard = _mapper.Map<Card>(request);

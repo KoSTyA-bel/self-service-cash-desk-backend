@@ -45,7 +45,7 @@ public class ProfileController : ControllerBase
 
         if (profiles.Count == 0)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var response = _mapper.Map<List<ProfileResponse>>(profiles);
@@ -60,7 +60,7 @@ public class ProfileController : ControllerBase
 
         if (profile is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var response = _mapper.Map<ProfileResponse>(profile);
@@ -82,7 +82,7 @@ public class ProfileController : ControllerBase
 
         if (role is null)
         {
-            throw new ElementNotfFoundException("Role does not exist");
+            throw new ElementNotFoundException("Role does not exist");
         }
 
         await _profileManager.AddAsync(profile);
@@ -99,7 +99,7 @@ public class ProfileController : ControllerBase
 
         if (profile is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         profile = _mapper.Map<Profile>(request);
@@ -114,7 +114,7 @@ public class ProfileController : ControllerBase
 
         if (role is null)
         {
-            throw new ElementNotfFoundException("Role does not exist");
+            throw new ElementNotFoundException("Role does not exist");
         }
 
         await _profileManager.UpdateAsync(profile);
