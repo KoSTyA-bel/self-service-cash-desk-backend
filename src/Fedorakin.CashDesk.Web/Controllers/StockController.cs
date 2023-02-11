@@ -15,14 +15,21 @@ public class StockController : ControllerBase
 {
     private readonly IStockManager _stockManager;
     private readonly IDataStateManager _dataStateManager;
-    private readonly IValidator<Stock> _stockValidator;
+    private readonly IValidator<CreateStockRequest> _createStockRequestValidator;
+    private readonly IValidator<UpdateStockRequest> _updateStockRequestValidator;
     private readonly IMapper _mapper;
 
-    public StockController(IStockManager stockManager, IDataStateManager dataStateManager, IValidator<Stock> stockValidator, IMapper mapper)
+    public StockController(
+        IStockManager stockManager, 
+        IDataStateManager dataStateManager, 
+        IValidator<CreateStockRequest> createStockRequestValidator, 
+        IValidator<UpdateStockRequest> updateStockRequestValidator, 
+        IMapper mapper)
     {
         _stockManager = stockManager ?? throw new ArgumentNullException(nameof(stockManager));
         _dataStateManager = dataStateManager ?? throw new ArgumentNullException(nameof(dataStateManager));
-        _stockValidator = stockValidator ?? throw new ArgumentNullException(nameof(stockValidator));
+        _createStockRequestValidator = createStockRequestValidator ?? throw new ArgumentNullException(nameof(createStockRequestValidator));
+        _updateStockRequestValidator = updateStockRequestValidator ?? throw new ArgumentNullException(nameof(updateStockRequestValidator));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
@@ -72,9 +79,9 @@ public class StockController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] CreateStockRequest request)
     {
-        var stock = _mapper.Map<Stock>(request);
+        _createStockRequestValidator.ValidateAndThrow(request);
 
-        _stockValidator.ValidateAndThrow(stock);
+        var stock = _mapper.Map<Stock>(request);
 
         await _stockManager.AddAsync(stock);
 
@@ -93,10 +100,10 @@ public class StockController : ControllerBase
             throw new ElementNotFoundException();
         }
 
+        _updateStockRequestValidator.ValidateAndThrow(request);
+
         stock = _mapper.Map<Stock>(request);
         stock.Id = id;
-
-        _stockValidator.ValidateAndThrow(stock);
 
         await _stockManager.UpdateAsync(stock);
 

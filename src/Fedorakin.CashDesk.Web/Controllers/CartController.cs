@@ -13,22 +13,19 @@ public class CartController : ControllerBase
 {
     private readonly ICartManager _cartManager;
     private readonly IStockManager _stockManager;
-    private readonly IDataStateManager _dataStateManager;
     private readonly ICacheService _cacheService;
     private readonly ICartService _cartService;
     private readonly IMapper _mapper;
 
     public CartController(
         ICartManager cartManager, 
-        IStockManager stockManager, 
-        IDataStateManager dataStateManager, 
+        IStockManager stockManager,
         ICacheService cacheService, 
         ICartService cartService, 
         IMapper mapper)
     {
         _cartManager = cartManager ?? throw new ArgumentNullException(nameof(cartManager));
         _stockManager = stockManager ?? throw new ArgumentNullException(nameof(stockManager));
-        _dataStateManager = dataStateManager ?? throw new ArgumentNullException(nameof(dataStateManager));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
         _cartService = cartService ?? throw new ArgumentNullException(nameof(cartService));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));

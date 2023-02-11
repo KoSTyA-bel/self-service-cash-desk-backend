@@ -15,14 +15,21 @@ public class ProductController : ControllerBase
 {
     private readonly IProductManager _productManager;
     private readonly IDataStateManager _dataStateManager;
-    private readonly IValidator<Product> _productValidator;
+    private readonly IValidator<CreateProductRequest> _createProductRequestValidator;
+    private readonly IValidator<UpdateProductRequest> _updateProductRequestValidator;
     private readonly IMapper _mapper;
 
-    public ProductController(IProductManager productManager, IDataStateManager dataStateManager, IValidator<Product> productValidator, IMapper mapper)
+    public ProductController(
+        IProductManager productManager, 
+        IDataStateManager dataStateManager, 
+        IValidator<CreateProductRequest> createProductRequestValidator, 
+        IValidator<UpdateProductRequest> updateProductRequestValidator, 
+        IMapper mapper)
     {
         _productManager = productManager ?? throw new ArgumentNullException(nameof(productManager));
         _dataStateManager = dataStateManager ?? throw new ArgumentNullException(nameof(dataStateManager));
-        _productValidator = productValidator ?? throw new ArgumentNullException(nameof(productValidator));
+        _createProductRequestValidator = createProductRequestValidator ?? throw new ArgumentNullException(nameof(createProductRequestValidator));
+        _updateProductRequestValidator = updateProductRequestValidator ?? throw new ArgumentNullException(nameof(updateProductRequestValidator));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
@@ -72,9 +79,9 @@ public class ProductController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] CreateProductRequest request)
     {
-        var product = _mapper.Map<Product>(request);
+        _createProductRequestValidator.ValidateAndThrow(request);
 
-        _productValidator.ValidateAndThrow(product);
+        var product = _mapper.Map<Product>(request);
 
         await _productManager.AddAsync(product);
 
@@ -93,10 +100,10 @@ public class ProductController : ControllerBase
             throw new ElementNotFoundException();
         }
 
+        _updateProductRequestValidator.ValidateAndThrow(request);
+
         product = _mapper.Map<Product>(request);
         product.Id = id;
-
-        _productValidator.ValidateAndThrow(product);
 
         await _productManager.UpdateAsync(product);
 

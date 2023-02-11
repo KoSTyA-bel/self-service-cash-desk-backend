@@ -6,6 +6,7 @@ using Fedorakin.CashDesk.Logic.Services;
 using Fedorakin.CashDesk.Web.Contracts.Requests.SelfCheckout;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Fedorakin.CashDesk.Web.Exceptions;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 
@@ -25,6 +26,7 @@ public class SelfCheckoutController : ControllerBase
     private readonly ISelfCheckoutService _selfCheckoutService;
     private readonly ICheckService _checkService;
     private readonly ICartService _cartService;
+    private readonly IValidator<PayRequest> _payRequestValidator;
     private readonly IMapper _mapper;
 
     public SelfCheckoutController(
@@ -35,9 +37,10 @@ public class SelfCheckoutController : ControllerBase
         IStockManager stockManager, 
         IDataStateManager dataStateManager, 
         ICacheService cache, 
-        ISelfCheckoutService selfCheckoutService,
-        ICheckService checkService,
-        ICartService cartService,
+        ISelfCheckoutService selfCheckoutService, 
+        ICheckService checkService, 
+        ICartService cartService, 
+        IValidator<PayRequest> payRequestValidator, 
         IMapper mapper)
     {
         _selfCheckoutManager = selfCheckoutManager ?? throw new ArgumentNullException(nameof(selfCheckoutManager));
@@ -50,6 +53,7 @@ public class SelfCheckoutController : ControllerBase
         _selfCheckoutService = selfCheckoutService ?? throw new ArgumentNullException(nameof(selfCheckoutService));
         _checkService = checkService ?? throw new ArgumentNullException(nameof(checkService));
         _cartService = cartService ?? throw new ArgumentNullException(nameof(cartService));
+        _payRequestValidator = payRequestValidator ?? throw new ArgumentNullException(nameof(payRequestValidator));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
@@ -119,6 +123,8 @@ public class SelfCheckoutController : ControllerBase
     [HttpPost("Pay")]
     public async Task<IActionResult> Pay([FromBody] PayRequest request)
     {
+        _payRequestValidator.ValidateAndThrow(request);
+
         _ = _cache.TryGetSelfCheckout(request.SelfCheckoutId, out var selfCheckout);
 
         if (selfCheckout is null)

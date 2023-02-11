@@ -4,6 +4,7 @@ using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Card;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Fedorakin.CashDesk.Web.Exceptions;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
@@ -15,13 +16,23 @@ public class CardController : ControllerBase
     private readonly ICardManager _cardManager;
     private readonly IProfileManager _profileService;
     private readonly IDataStateManager _dataStateManager;
+    private readonly IValidator<CreateCardRequest> _createCardRequestValidator;
+    private readonly IValidator<UpdateCardRequest> _updateCardRequestValidator;
     private readonly IMapper _mapper;
 
-    public CardController(ICardManager cardManager, IProfileManager profileService, IDataStateManager dataStateManager, IMapper mapper)
+    public CardController(
+        ICardManager cardManager, 
+        IProfileManager profileService, 
+        IDataStateManager dataStateManager, 
+        IValidator<CreateCardRequest> createCardRequestValidator, 
+        IValidator<UpdateCardRequest> updateCardRequestValidator, 
+        IMapper mapper)
     {
         _cardManager = cardManager ?? throw new ArgumentNullException(nameof(cardManager));
         _profileService = profileService ?? throw new ArgumentNullException(nameof(profileService));
         _dataStateManager = dataStateManager ?? throw new ArgumentNullException(nameof(dataStateManager));
+        _createCardRequestValidator = createCardRequestValidator ?? throw new ArgumentNullException(nameof(createCardRequestValidator));
+        _updateCardRequestValidator = updateCardRequestValidator ?? throw new ArgumentNullException(nameof(updateCardRequestValidator));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
@@ -83,6 +94,8 @@ public class CardController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] CreateCardRequest request)
     {
+        _createCardRequestValidator.ValidateAndThrow(request);
+
         var profile = await _profileService.GetByIdAsync(request.ProfileId);
 
         if (profile is null)
@@ -99,11 +112,6 @@ public class CardController : ControllerBase
 
         card = _mapper.Map<Card>(request);
 
-        if (!IsCardDataValid(card))
-        {
-            return BadRequest("Invalid data");
-        }
-
         await _cardManager.AddAsync(card);
 
         await _dataStateManager.CommitChangesAsync();
@@ -114,6 +122,8 @@ public class CardController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Put(int id, [FromBody] UpdateCardRequest request)
     {
+        _updateCardRequestValidator.ValidateAndThrow(request);
+
         var profile = await _profileService.GetByIdAsync(request.ProfileId);
 
         if (profile is null)
@@ -132,11 +142,6 @@ public class CardController : ControllerBase
         newCard.Id = id;
         newCard.Total = card.Total;
         newCard.Code = card.Code;
-
-        if (!IsCardDataValid(newCard))
-        {
-            return BadRequest("Invalid data");
-        }
 
         await _cardManager.UpdateAsync(newCard);
 
@@ -158,10 +163,5 @@ public class CardController : ControllerBase
         }
 
         return Ok();
-    }
-
-    private bool IsCardDataValid(Card card)
-    {
-        return !(card.Code.Length > 50 || card.Discount > 100 || card.Discount < 0);
     }
 }

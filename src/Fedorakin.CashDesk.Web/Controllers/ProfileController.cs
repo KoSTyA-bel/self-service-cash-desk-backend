@@ -1,8 +1,10 @@
 ﻿using Fedorakin.CashDesk.Data.Models;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
+using Fedorakin.CashDesk.Web.Contracts.Requests.Product;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Profile;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Fedorakin.CashDesk.Web.Exceptions;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
@@ -14,17 +16,17 @@ public class ProfileController : ControllerBase
     private readonly IProfileManager _profileManager;
     private readonly IRoleManager _roleManager;
     private readonly IDataStateManager _dataStateManager;
+    private readonly IValidator<CreateProfileRequest> _createProfileRequestValidator;
+    private readonly IValidator<UpdateProfileRequest> _updateProfileRequestValidator;
     private readonly AutoMapper.IMapper _mapper;
 
-    public ProfileController(
-        IProfileManager profileManager, 
-        IRoleManager roleManager, 
-        IDataStateManager dataStateManager, 
-        AutoMapper.IMapper mapper)
+    public ProfileController(IProfileManager profileManager, IRoleManager roleManager, IDataStateManager dataStateManager, IValidator<CreateProfileRequest> createProfileRequestValidator, IValidator<UpdateProfileRequest> updateProfileRequestValidator, AutoMapper.IMapper mapper)
     {
         _profileManager = profileManager ?? throw new ArgumentNullException(nameof(profileManager));
         _roleManager = roleManager ?? throw new ArgumentNullException(nameof(roleManager));
         _dataStateManager = dataStateManager ?? throw new ArgumentNullException(nameof(dataStateManager));
+        _createProfileRequestValidator = createProfileRequestValidator ?? throw new ArgumentNullException(nameof(createProfileRequestValidator));
+        _updateProfileRequestValidator = updateProfileRequestValidator ?? throw new ArgumentNullException(nameof(updateProfileRequestValidator));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
@@ -71,12 +73,9 @@ public class ProfileController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] CreateProfileRequest request)
     {
-        var profile = _mapper.Map<Profile>(request);
+        _createProfileRequestValidator.ValidateAndThrow(request);
 
-        if (!IsProfileDataValid(profile))
-        {
-            return BadRequest("Invalid data");
-        }
+        var profile = _mapper.Map<Profile>(request);
 
         var role = await _roleManager.GetByIdAsync(profile.RoleId);
 
@@ -102,13 +101,10 @@ public class ProfileController : ControllerBase
             throw new ElementNotFoundException();
         }
 
+        _updateProfileRequestValidator.ValidateAndThrow(request);
+
         profile = _mapper.Map<Profile>(request);
         profile.Id = id;
-
-        if (!IsProfileDataValid(profile))
-        {
-            return BadRequest("Invalid data");
-        }
 
         var role = await _roleManager.GetByIdAsync(profile.RoleId);
 
@@ -136,10 +132,5 @@ public class ProfileController : ControllerBase
         }
 
         return Ok();
-    }
-
-    private bool IsProfileDataValid(Profile profile)
-    {
-        return !(profile.FullName.Length > 50);
     }
 }

@@ -15,14 +15,21 @@ public class RoleController : ControllerBase
 {
     private readonly IRoleManager _roleManager;
     private readonly IDataStateManager _dataStateManager;
-    private readonly IValidator<Role> _roleValidator;
+    private readonly IValidator<CreateRoleRequest> _createRoleValidator;
+    private readonly IValidator<UpdateRoleRequest> _updateRoleValidator;
     private readonly IMapper _mapper;
 
-    public RoleController(IRoleManager roleManager, IDataStateManager dataStateManager, IValidator<Role> roleValidator, IMapper mapper)
+    public RoleController(
+        IRoleManager roleManager, 
+        IDataStateManager dataStateManager, 
+        IValidator<CreateRoleRequest> createRoleValidator, 
+        IValidator<UpdateRoleRequest> updateRoleValidator, 
+        IMapper mapper)
     {
         _roleManager = roleManager ?? throw new ArgumentNullException(nameof(roleManager));
         _dataStateManager = dataStateManager ?? throw new ArgumentNullException(nameof(dataStateManager));
-        _roleValidator = roleValidator ?? throw new ArgumentNullException(nameof(roleValidator));
+        _createRoleValidator = createRoleValidator ?? throw new ArgumentNullException(nameof(createRoleValidator));
+        _updateRoleValidator = updateRoleValidator ?? throw new ArgumentNullException(nameof(updateRoleValidator));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
@@ -69,9 +76,9 @@ public class RoleController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] CreateRoleRequest request)
     {
-        var role = _mapper.Map<Role>(request);
-        
-        _roleValidator.ValidateAndThrow(role);
+        _createRoleValidator.ValidateAndThrow(request);
+
+        var role = _mapper.Map<Role>(request);        
 
         await _roleManager.AddAsync(role);
 
@@ -90,10 +97,10 @@ public class RoleController : ControllerBase
             throw new ElementNotFoundException();
         }
 
-        role = _mapper.Map<Role>(request);
-        role.Id = id;
+        _updateRoleValidator.ValidateAndThrow(request);
 
-        _roleValidator.ValidateAndThrow(role);
+        role = _mapper.Map<Role>(request);
+        role.Id = id;        
 
         await _roleManager.UpdateAsync(role);
 
