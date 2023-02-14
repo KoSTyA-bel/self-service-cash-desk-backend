@@ -11,4 +11,6 @@ public class UpdateProductRequest
     public double Weight { get; set; }
 
     public string Barcode { get; set; } = string.Empty;
+
+    public string Photo { get; set; } = string.Empty;
 }
