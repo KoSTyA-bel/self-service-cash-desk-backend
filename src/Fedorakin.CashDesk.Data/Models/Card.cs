@@ -6,6 +6,8 @@ public class Card
 
     public string Code { get; set; } = string.Empty;
 
+    public int CVV { get; set; }
+
     public double Total { get; set; }
 
     public double Discount { get; set; }

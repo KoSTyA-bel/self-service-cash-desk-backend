@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Fedorakin.CashDesk.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class Init : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -37,7 +37,8 @@ namespace Fedorakin.CashDesk.Data.Migrations
                     Description = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Price = table.Column<double>(type: "float", nullable: false),
                     Weight = table.Column<double>(type: "float", nullable: false),
-                    Barcode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                    Barcode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Photo = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -142,7 +143,8 @@ namespace Fedorakin.CashDesk.Data.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Code = table.Column<string>(type: "nchar(16)", fixedLength: true, maxLength: 16, nullable: false),
+                    CVV = table.Column<int>(type: "int", fixedLength: true, maxLength: 3, nullable: false),
                     Total = table.Column<double>(type: "float", nullable: false),
                     Discount = table.Column<double>(type: "float", nullable: false),
                     ProfileId = table.Column<int>(type: "int", nullable: false)
