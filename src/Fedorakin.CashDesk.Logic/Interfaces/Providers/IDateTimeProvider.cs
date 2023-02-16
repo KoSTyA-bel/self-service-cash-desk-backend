@@ -3,4 +3,6 @@
 public interface IDateTimeProvider
 {
     public DateTime Now();
+
+    public DateTime NexWeek();
 }

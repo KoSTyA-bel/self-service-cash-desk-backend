@@ -6,6 +6,7 @@ using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Microsoft.AspNetCore.Mvc;
 using Fedorakin.CashDesk.Web.Exceptions;
 using FluentValidation;
+using Fedorakin.CashDesk.Web.Attributes;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
 
@@ -34,6 +35,7 @@ public class ProductController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> Get(int page, int pageSize, string? name, string? barcode)
     {
         if (page < 1)
