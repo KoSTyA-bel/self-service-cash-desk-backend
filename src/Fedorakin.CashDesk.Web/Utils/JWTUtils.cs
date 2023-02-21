@@ -1,5 +1,7 @@
 ﻿using Fedorakin.CashDesk.Logic.Interfaces.Providers;
+using Fedorakin.CashDesk.Web.Exceptions;
 using Fedorakin.CashDesk.Web.Interfaces.Utils;
+using Fedorakin.CashDesk.Web.Models;
 using Fedorakin.CashDesk.Web.Settings;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -19,14 +21,19 @@ public class JWTUtils : IJWTUtils
         _jwtSettings = jwtSettings ?? throw new ArgumentNullException(nameof(jwtSettings));
     }
 
-    public string GenerateToken(JWTSettings.Admin admin)
+    public string GenerateToken(AdminModel admin)
     {
+        if (_jwtSettings.Admins.FirstOrDefault(x => x.Name == admin.Name && x.Password == admin.Password) is null)
+        {
+            throw new ElementNotFoundException();
+        }
+
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(_jwtSettings.Key);
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            Subject = new ClaimsIdentity(new[] { new Claim("admin_name", admin.Name.ToString()) }),
+            Subject = new ClaimsIdentity(new[] { new Claim(JwtRegisteredClaimNames.UniqueName, admin.Name.ToString()) }),
             Expires = _dateTimeProvider.NexWeek(),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
@@ -36,7 +43,7 @@ public class JWTUtils : IJWTUtils
         return tokenHandler.WriteToken(token);
     }
 
-    public JWTSettings.Admin? ValidateToken(string token)
+    public AdminModel ValidateToken(string token)
     {
         if (string.IsNullOrEmpty(token))
         {
@@ -59,7 +66,7 @@ public class JWTUtils : IJWTUtils
 
             var jwtToken = (JwtSecurityToken)validatedToken;
             
-            var adminName = jwtToken.Claims.Where(x => x.Type == "admin_name").First().Value;
+            var adminName = jwtToken.Claims.Where(x => x.Type == JwtRegisteredClaimNames.UniqueName).First().Value;
 
             var admin = _jwtSettings.Admins.FirstOrDefault(x => x.Name == adminName);
 

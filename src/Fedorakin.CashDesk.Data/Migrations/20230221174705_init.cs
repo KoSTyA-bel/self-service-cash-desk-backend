@@ -144,7 +144,7 @@ namespace Fedorakin.CashDesk.Data.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Code = table.Column<string>(type: "nchar(16)", fixedLength: true, maxLength: 16, nullable: false),
-                    CVV = table.Column<int>(type: "int", fixedLength: true, maxLength: 3, nullable: false),
+                    CVV = table.Column<string>(type: "nchar(3)", fixedLength: true, maxLength: 3, nullable: false),
                     Total = table.Column<double>(type: "float", nullable: false),
                     Discount = table.Column<double>(type: "float", nullable: false),
                     ProfileId = table.Column<int>(type: "int", nullable: false)

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Fedorakin.CashDesk.Data.Models;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
+using Fedorakin.CashDesk.Web.Attributes;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Stock;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Fedorakin.CashDesk.Web.Exceptions;
@@ -77,6 +78,7 @@ public class StockController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Post([FromBody] CreateStockRequest request)
     {
         _createStockRequestValidator.ValidateAndThrow(request);
@@ -91,6 +93,7 @@ public class StockController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize]
     public async Task<IActionResult> Put(int id, [FromBody] UpdateStockRequest request)
     {
         var stock = await _stockManager.GetByIdAsync(id);
@@ -113,6 +116,7 @@ public class StockController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize]
     public async Task<IActionResult> Delete(int id)
     {
         var stock = await _stockManager.GetByIdAsync(id);

@@ -1,5 +1,6 @@
 ﻿using Fedorakin.CashDesk.Data.Models;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
+using Fedorakin.CashDesk.Web.Attributes;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Product;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Profile;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
@@ -11,6 +12,7 @@ namespace Fedorakin.CashDesk.Web.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class ProfileController : ControllerBase
 {
     private readonly IProfileManager _profileManager;

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Fedorakin.CashDesk.Data.Models;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
+using Fedorakin.CashDesk.Web.Attributes;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Card;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Fedorakin.CashDesk.Web.Exceptions;
@@ -11,6 +12,7 @@ namespace Fedorakin.CashDesk.Web.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class CardController : ControllerBase
 {
     private readonly ICardManager _cardManager;

@@ -17,7 +17,7 @@ public class AuthorizeAttribute : Attribute, IAuthorizationFilter
 
         var user = context.HttpContext.Items["AdminName"];
 
-        if (user == null)
+        if (user is null)
         {
             throw new UnauthorizedException();
         }

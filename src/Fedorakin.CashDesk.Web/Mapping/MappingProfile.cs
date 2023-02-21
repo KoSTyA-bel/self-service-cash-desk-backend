@@ -7,6 +7,7 @@ using Fedorakin.CashDesk.Web.Contracts.Requests.Role;
 using Fedorakin.CashDesk.Web.Contracts.Requests.SelfCheckout;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Stock;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
+using Fedorakin.CashDesk.Web.Models;
 using Fedorakin.CashDesk.Web.Settings;
 using System.Net;
 
@@ -144,7 +145,7 @@ public class MappingProfile : AutoMapper.Profile
         #endregion
 
         #region Authorization
-        CreateMap<AuthorizationRequest, JWTSettings.Admin>()
+        CreateMap<AuthorizationRequest, AdminModel>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
             .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.Password));
         #endregion

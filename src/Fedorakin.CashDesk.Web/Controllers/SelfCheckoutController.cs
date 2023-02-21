@@ -3,6 +3,7 @@ using Fedorakin.CashDesk.Data.Models;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Logic.Interfaces.Services;
 using Fedorakin.CashDesk.Logic.Services;
+using Fedorakin.CashDesk.Web.Attributes;
 using Fedorakin.CashDesk.Web.Contracts.Requests.SelfCheckout;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Fedorakin.CashDesk.Web.Exceptions;
@@ -109,6 +110,7 @@ public class SelfCheckoutController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Post([FromBody] CreateSelfCheckoutRequest request)
     {
         var selfCheckout = _mapper.Map<SelfCheckout>(request);
@@ -214,6 +216,7 @@ public class SelfCheckoutController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize]
     public async Task<IActionResult> Put(int id, [FromBody] UpdateSelfCheckoutRequest request)
     {
         var selfCheckout = await _selfCheckoutManager.GetByIdAsync(id);
@@ -288,6 +291,7 @@ public class SelfCheckoutController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize]
     public async Task<IActionResult> Delete(int id)
     {
         var selfCheckout = await _selfCheckoutManager.GetByIdAsync(id);

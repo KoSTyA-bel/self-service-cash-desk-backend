@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
-using Fedorakin.CashDesk.Logic.Interfaces.Services;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Fedorakin.CashDesk.Web.Exceptions;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +21,31 @@ public class CheckController : ControllerBase
 
     [HttpGet]
     public async Task<IActionResult> Get(int page, int pageSize)
+    {
+        if (page < 1)
+        {
+            throw new InvalidPageNumberException();
+        }
+
+        if (pageSize < 1)
+        {
+            throw new InvalidPageSizeException();
+        }
+
+        var checks = await _checkManager.GetRangeAsync(page, pageSize);
+
+        if (checks.Count == 0)
+        {
+            throw new ElementNotFoundException();
+        }
+
+        var response = _mapper.Map<List<CheckResponse>>(checks);
+
+        return Ok(response);
+    }
+
+    [HttpGet("history")]
+    public async Task<IActionResult> ViewHistory(int page, int pageSize, string card, string cvv)
     {
         if (page < 1)
         {

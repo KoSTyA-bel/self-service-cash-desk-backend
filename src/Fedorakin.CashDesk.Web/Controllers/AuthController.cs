@@ -2,6 +2,7 @@
 using Fedorakin.CashDesk.Web.Contracts.Requests.Auth;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Fedorakin.CashDesk.Web.Interfaces.Utils;
+using Fedorakin.CashDesk.Web.Models;
 using Fedorakin.CashDesk.Web.Settings;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -24,7 +25,7 @@ public class AuthController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> GetToken([FromBody] AuthorizationRequest request)
     {
-        var admin = _mapper.Map<JWTSettings.Admin>(request);
+        var admin = _mapper.Map<AdminModel>(request);
 
         var token = _jwtUtils.GenerateToken(admin);
 

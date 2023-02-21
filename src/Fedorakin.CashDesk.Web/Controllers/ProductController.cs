@@ -35,7 +35,6 @@ public class ProductController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize]
     public async Task<IActionResult> Get(int page, int pageSize, string? name, string? barcode)
     {
         if (page < 1)
@@ -79,6 +78,7 @@ public class ProductController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Post([FromBody] CreateProductRequest request)
     {
         _createProductRequestValidator.ValidateAndThrow(request);
@@ -93,6 +93,7 @@ public class ProductController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize]
     public async Task<IActionResult> Put(int id, [FromBody] UpdateProductRequest request)
     {
         var product = await _productManager.GetByIdAsync(id);
@@ -115,6 +116,7 @@ public class ProductController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize]
     public async Task<IActionResult> Delete(int id)
     {
         var product = await _productManager.GetByIdAsync(id);

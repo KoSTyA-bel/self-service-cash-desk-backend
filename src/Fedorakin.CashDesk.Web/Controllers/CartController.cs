@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Logic.Interfaces.Services;
+using Fedorakin.CashDesk.Web.Contracts.Requests.Cart;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Fedorakin.CashDesk.Web.Exceptions;
 using Microsoft.AspNetCore.Mvc;
@@ -56,10 +57,10 @@ public class CartController : ControllerBase
         return Ok(response);
     }
 
-    [HttpPut("{number}")]
-    public async Task<IActionResult> AddProductToCart(Guid number, [FromBody] int productId)
+    [HttpPut()]
+    public async Task<IActionResult> AddProductToCart([FromBody] AddProductToCartRequest request)
     {
-        var stock = await _stockManager.GetStockForProductAsync(productId);
+        var stock = await _stockManager.GetStockForProductAsync(request.ProductId);
 
         if (stock is null)
         {
@@ -71,14 +72,26 @@ public class CartController : ControllerBase
             return BadRequest("Product out of stock");
         }
 
-        if (!_cacheService.TryGetCart(number, out var cart))
+        if (!_cacheService.TryGetSelfCheckout(request.SelfChecoutId, out var selfCheckout))
+        {
+            throw new SelfCheckoutFreeException();
+        }
+
+        if (!_cacheService.TryGetCart(request.CartNumber, out var cart))
         {
             throw new ElementNotFoundException("Cart does not exist");
+        }
+
+        if (selfCheckout.ActiveNumber != cart.Number)
+        {
+            // implement new exception
+            throw new Exception();
         }
 
         _cartService.AddProduct(cart, stock.Product);
 
         _cacheService.SetCart(cart);
+        _cacheService.SetSelfCheckout(selfCheckout);
 
         return Ok("Success");
     }

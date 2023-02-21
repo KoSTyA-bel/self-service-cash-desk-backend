@@ -43,6 +43,8 @@ public class ErrorHandler
             SelfCheckoutUnactiveException => ((int)HttpStatusCode.BadRequest, exception.Message),
             ElementNotFoundException => ((int)HttpStatusCode.NotFound, exception.Message),
             ValidationException => ((int)HttpStatusCode.BadRequest, exception.Message),
+            CartEmptyException => ((int)HttpStatusCode.BadRequest, exception.Message),
+            UnauthorizedException => ((int)HttpStatusCode.Unauthorized, exception.Message),
             _ => ((int)HttpStatusCode.InternalServerError, exception.Message)
         };
 }

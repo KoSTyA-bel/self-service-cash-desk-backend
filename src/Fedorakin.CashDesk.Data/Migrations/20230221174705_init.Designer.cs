@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fedorakin.CashDesk.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230214124244_init")]
+    [Migration("20230221174705_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -48,9 +48,10 @@ namespace Fedorakin.CashDesk.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CVV")
+                    b.Property<string>("CVV")
+                        .IsRequired()
                         .HasMaxLength(3)
-                        .HasColumnType("int")
+                        .HasColumnType("nchar(3)")
                         .IsFixedLength();
 
                     b.Property<string>("Code")
