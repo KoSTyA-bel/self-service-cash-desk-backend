@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Logic.Interfaces.Services;
+using Fedorakin.CashDesk.Web.Attributes;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Cart;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Fedorakin.CashDesk.Web.Exceptions;
@@ -33,6 +34,7 @@ public class CartController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> Get(int page, int pageSize)
     {
         if (page < 1)
@@ -57,7 +59,7 @@ public class CartController : ControllerBase
         return Ok(response);
     }
 
-    [HttpPut()]
+    [HttpPut("Add")]
     public async Task<IActionResult> AddProductToCart([FromBody] AddProductToCartRequest request)
     {
         var stock = await _stockManager.GetStockForProductAsync(request.ProductId);
@@ -69,7 +71,7 @@ public class CartController : ControllerBase
 
         if (stock.Count <= 0)
         {
-            return BadRequest("Product out of stock");
+            throw new ProductOutOfStockException();
         }
 
         if (!_cacheService.TryGetSelfCheckout(request.SelfChecoutId, out var selfCheckout))
@@ -89,6 +91,33 @@ public class CartController : ControllerBase
         }
 
         _cartService.AddProduct(cart, stock.Product);
+
+        _cacheService.SetCart(cart);
+        _cacheService.SetSelfCheckout(selfCheckout);
+
+        return Ok("Success");
+    }
+
+    [HttpPut("Remove")]
+    public async Task<IActionResult> RemoveProduct([FromBody] RemoveProductFromCart request)
+    {
+        if (!_cacheService.TryGetSelfCheckout(request.SelfChecoutId, out var selfCheckout))
+        {
+            throw new SelfCheckoutFreeException();
+        }
+
+        if (!_cacheService.TryGetCart(request.CartNumber, out var cart))
+        {
+            throw new ElementNotFoundException("Cart does not exist");
+        }
+
+        if (selfCheckout.ActiveNumber != cart.Number)
+        {
+            // implement new exception
+            throw new Exception();
+        }
+
+        _cartService.RemoveProduct(cart, request.ProductId);
 
         _cacheService.SetCart(cart);
         _cacheService.SetSelfCheckout(selfCheckout);

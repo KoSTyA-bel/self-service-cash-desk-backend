@@ -2,14 +2,12 @@
 using Fedorakin.CashDesk.Data.Models;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Logic.Interfaces.Services;
-using Fedorakin.CashDesk.Logic.Services;
 using Fedorakin.CashDesk.Web.Attributes;
 using Fedorakin.CashDesk.Web.Contracts.Requests.SelfCheckout;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Fedorakin.CashDesk.Web.Exceptions;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
 
@@ -290,6 +288,21 @@ public class SelfCheckoutController : ControllerBase
         return Ok();
     }
 
+    [HttpPut("FreeForUser/{id}")]
+    [Authorize]
+    public async Task<IActionResult> Free(int id)
+    {
+        if (!_cache.TryGetSelfCheckout(id, out var selfCheckout))
+        {
+            throw new ElementNotFoundException();
+        }
+
+        _cache.RemoveSelfCheckout(id);
+        _cache.RemoveCart(selfCheckout.ActiveNumber);
+
+        return Ok();
+    }
+
     [HttpDelete("{id}")]
     [Authorize]
     public async Task<IActionResult> Delete(int id)
@@ -298,6 +311,12 @@ public class SelfCheckoutController : ControllerBase
 
         if (selfCheckout is not null)
         {
+            if (_cache.TryGetSelfCheckout(id, out var cached))
+            {
+                _cache.RemoveSelfCheckout(id);
+                _cache.RemoveCart(cached.ActiveNumber);
+            }
+
             await _selfCheckoutManager.DeleteAsync(selfCheckout);
 
             await _dataStateManager.CommitChangesAsync();

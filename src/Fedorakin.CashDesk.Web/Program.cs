@@ -13,8 +13,16 @@ using Fedorakin.CashDesk.Web.Utils;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog();
+
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 var configuration = builder.Configuration;
 var connectionString = configuration.GetConnectionString("CashDesk");
@@ -53,16 +61,17 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(MyAllowSpecificOrigins,
-                      policy =>
-                      {
-                          policy.AllowAnyHeader();
-                          policy.AllowAnyMethod();
-                          policy.WithOrigins("http://localhost:3000");
-                      });
-});
+builder.Services.AddCors();
+//builder.Services.AddCors(options =>
+//{
+//    options.AddPolicy(MyAllowSpecificOrigins,
+//                      policy =>
+//                      {
+//                          policy.AllowAnyHeader();
+//                          policy.AllowAnyMethod();
+//                          policy.WithOrigins("http://localhost:3000");
+//                      });
+//});
 
 var app = builder.Build();
 
@@ -72,14 +81,17 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseSerilogRequestLogging();
+
+app.UseCors(config => config.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+
 app.UseMiddleware<ErrorHandler>();
 
 app.UseMiddleware<JwtMiddleware>();
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.MapControllers();
 
-app.UseCors(MyAllowSpecificOrigins);
 
 app.Run();

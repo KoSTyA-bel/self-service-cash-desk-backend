@@ -44,7 +44,7 @@ public class CheckController : ControllerBase
         return Ok(response);
     }
 
-    [HttpGet("history")]
+    [HttpGet("History")]
     public async Task<IActionResult> ViewHistory(int page, int pageSize, string card, string cvv)
     {
         if (page < 1)
@@ -57,7 +57,7 @@ public class CheckController : ControllerBase
             throw new InvalidPageSizeException();
         }
 
-        var checks = await _checkManager.GetRangeAsync(page, pageSize);
+        var checks = await _checkManager.GetRangeAsync(page, pageSize, card, cvv);
 
         if (checks.Count == 0)
         {

@@ -15,6 +15,7 @@ namespace Fedorakin.CashDesk.Web.Controllers;
 public class StockController : ControllerBase
 {
     private readonly IStockManager _stockManager;
+    private readonly IProductManager _productManager;
     private readonly IDataStateManager _dataStateManager;
     private readonly IValidator<CreateStockRequest> _createStockRequestValidator;
     private readonly IValidator<UpdateStockRequest> _updateStockRequestValidator;
@@ -22,12 +23,14 @@ public class StockController : ControllerBase
 
     public StockController(
         IStockManager stockManager, 
+        IProductManager productManager, 
         IDataStateManager dataStateManager, 
         IValidator<CreateStockRequest> createStockRequestValidator, 
         IValidator<UpdateStockRequest> updateStockRequestValidator, 
         IMapper mapper)
     {
         _stockManager = stockManager ?? throw new ArgumentNullException(nameof(stockManager));
+        _productManager = productManager ?? throw new ArgumentNullException(nameof(productManager));
         _dataStateManager = dataStateManager ?? throw new ArgumentNullException(nameof(dataStateManager));
         _createStockRequestValidator = createStockRequestValidator ?? throw new ArgumentNullException(nameof(createStockRequestValidator));
         _updateStockRequestValidator = updateStockRequestValidator ?? throw new ArgumentNullException(nameof(updateStockRequestValidator));
@@ -83,7 +86,21 @@ public class StockController : ControllerBase
     {
         _createStockRequestValidator.ValidateAndThrow(request);
 
-        var stock = _mapper.Map<Stock>(request);
+        var product = await _productManager.GetByIdAsync(request.ProductId);
+
+        if (product is null)
+        {
+            throw new ElementNotFoundException();
+        }
+
+        var stock = await _stockManager.GetStockForProductAsync(request.ProductId);
+
+        if (stock is not null)
+        {
+            throw new StockAlreadyExsistsException();
+        }
+
+        stock = _mapper.Map<Stock>(request);
 
         await _stockManager.AddAsync(stock);
 
@@ -105,10 +122,11 @@ public class StockController : ControllerBase
 
         _updateStockRequestValidator.ValidateAndThrow(request);
 
-        stock = _mapper.Map<Stock>(request);
-        stock.Id = id;
+        var mappedStock = _mapper.Map<Stock>(request);
+        mappedStock.Id = id;
+        mappedStock.ProductId = stock.ProductId;
 
-        await _stockManager.UpdateAsync(stock);
+        await _stockManager.UpdateAsync(mappedStock);
 
         await _dataStateManager.CommitChangesAsync();
 

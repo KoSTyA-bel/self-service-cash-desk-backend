@@ -1,5 +1,4 @@
 ﻿using Fedorakin.CashDesk.Web.Interfaces.Utils;
-using Fedorakin.CashDesk.Web.Utils;
 
 namespace Fedorakin.CashDesk.Web.Middlewares;
 

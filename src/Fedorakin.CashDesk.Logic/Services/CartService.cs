@@ -20,6 +20,17 @@ public class CartService : ICartService
         cart.Products.Add(product);
     }
 
+    public void RemoveProduct(Cart cart, int productId)
+    {
+        var product = cart.Products.FirstOrDefault(x => x.Id == productId);
+
+        if (product is not null)
+        {
+            cart.Products.Remove(product);
+            cart.Price -= product.Price;
+        }
+    }
+
     public void SetDateTime(Cart cart)
     {
         cart.Date = _dateTimeProvider.Now();

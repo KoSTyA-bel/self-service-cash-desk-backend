@@ -12,7 +12,6 @@ namespace Fedorakin.CashDesk.Web.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize]
 public class CardController : ControllerBase
 {
     private readonly ICardManager _cardManager;
@@ -79,6 +78,7 @@ public class CardController : ControllerBase
     }
 
     [HttpGet("ByCode/{code}")]
+    [AllowAnonymous]
     public async Task<IActionResult> Get(string code)
     {
         var card = await _cardManager.GetByCodeAsync(code);
@@ -109,7 +109,7 @@ public class CardController : ControllerBase
 
         if (card is not null)
         {
-            return BadRequest("Profile already has a card");
+            throw new ProfileHasCardException();
         }
 
         card = _mapper.Map<Card>(request);
