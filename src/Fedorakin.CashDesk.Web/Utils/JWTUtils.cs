@@ -10,6 +10,8 @@ using System.Text;
 
 namespace Fedorakin.CashDesk.Web.Utils;
 
+// Create exception
+// try-cacth
 public class JWTUtils : IJWTUtils
 {
     private readonly IDateTimeProvider _dateTimeProvider;
