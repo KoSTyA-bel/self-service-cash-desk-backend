@@ -41,4 +41,18 @@ public class CheckManager : ICheckManager
             .Take(pageSize)
             .ToListAsync();
     }
+
+    public Task<List<Check>> GetRangeAsync(int page, int pageSize, string code, string cvv)
+    {
+        return _context.Checks
+            .AsNoTracking()
+            .Include(x => x.Card)
+            .ThenInclude(x => x.Profile)
+            .ThenInclude(x => x.Role)
+            .Include(x => x.SelfCheckout)
+            .Where(x => x.Card.Code == code && x.Card.CVV == cvv)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+    }
 }

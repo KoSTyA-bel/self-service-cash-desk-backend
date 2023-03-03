@@ -5,15 +5,30 @@ using Fedorakin.CashDesk.Logic.Interfaces.Services;
 using Fedorakin.CashDesk.Logic.Managers;
 using Fedorakin.CashDesk.Logic.Providers;
 using Fedorakin.CashDesk.Logic.Services;
+using Fedorakin.CashDesk.Web.Interfaces.Utils;
 using Fedorakin.CashDesk.Web.Mapping;
 using Fedorakin.CashDesk.Web.Middlewares;
+using Fedorakin.CashDesk.Web.Settings;
+using Fedorakin.CashDesk.Web.Utils;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
-var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
-var connectionString = builder.Configuration.GetConnectionString("CashDesk");
+builder.Host.UseSerilog();
+
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+var configuration = builder.Configuration;
+var connectionString = configuration.GetConnectionString("CashDesk");
+
+builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection(nameof(JWTSettings)));
+builder.Services.AddSingleton<JWTSettings>(sp => sp.GetRequiredService<IOptions<JWTSettings>>().Value);
 
 builder.Services.AddDbContextPool<DataContext>(options => options.UseSqlServer(connectionString));
 
@@ -30,6 +45,8 @@ builder.Services.AddScoped<IDataStateManager, DataStateManager>();
 builder.Services.AddScoped<ITimeSpanProvider, TimeSpanProvider>();
 builder.Services.AddScoped<IDateTimeProvider, DateTimeProvider>();
 
+builder.Services.AddScoped<IJWTUtils, JWTUtils>();
+
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<ICartService, CartService>();
@@ -44,16 +61,17 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(MyAllowSpecificOrigins,
-                      policy =>
-                      {
-                          policy.AllowAnyHeader();
-                          policy.AllowAnyMethod();
-                          policy.WithOrigins("http://localhost:3000");
-                      });
-});
+builder.Services.AddCors();
+//builder.Services.AddCors(options =>
+//{
+//    options.AddPolicy(MyAllowSpecificOrigins,
+//                      policy =>
+//                      {
+//                          policy.AllowAnyHeader();
+//                          policy.AllowAnyMethod();
+//                          policy.WithOrigins("http://localhost:3000");
+//                      });
+//});
 
 var app = builder.Build();
 
@@ -63,14 +81,17 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseSerilogRequestLogging();
+
+app.UseCors(config => config.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+
 app.UseMiddleware<ErrorHandler>();
 
-app.UseHttpsRedirection();
+app.UseMiddleware<JwtMiddleware>();
 
-app.UseAuthorization();
+//app.UseHttpsRedirection();
 
 app.MapControllers();
 
-app.UseCors(MyAllowSpecificOrigins);
 
 app.Run();

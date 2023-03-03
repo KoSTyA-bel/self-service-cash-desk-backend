@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Logic.Interfaces.Services;
+using Fedorakin.CashDesk.Web.Attributes;
+using Fedorakin.CashDesk.Web.Contracts.Requests.Cart;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Fedorakin.CashDesk.Web.Exceptions;
 using Microsoft.AspNetCore.Mvc;
@@ -13,28 +15,26 @@ public class CartController : ControllerBase
 {
     private readonly ICartManager _cartManager;
     private readonly IStockManager _stockManager;
-    private readonly IDataStateManager _dataStateManager;
     private readonly ICacheService _cacheService;
     private readonly ICartService _cartService;
     private readonly IMapper _mapper;
 
     public CartController(
         ICartManager cartManager, 
-        IStockManager stockManager, 
-        IDataStateManager dataStateManager, 
+        IStockManager stockManager,
         ICacheService cacheService, 
         ICartService cartService, 
         IMapper mapper)
     {
         _cartManager = cartManager ?? throw new ArgumentNullException(nameof(cartManager));
         _stockManager = stockManager ?? throw new ArgumentNullException(nameof(stockManager));
-        _dataStateManager = dataStateManager ?? throw new ArgumentNullException(nameof(dataStateManager));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
         _cartService = cartService ?? throw new ArgumentNullException(nameof(cartService));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> Get(int page, int pageSize)
     {
         if (page < 1)
@@ -51,7 +51,7 @@ public class CartController : ControllerBase
 
         if (carts.Count == 0)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var response = _mapper.Map<List<CartResponse>>(carts);
@@ -59,29 +59,68 @@ public class CartController : ControllerBase
         return Ok(response);
     }
 
-    [HttpPut("{number}")]
-    public async Task<IActionResult> AddProductToCart(Guid number, [FromBody] int productId)
+    [HttpPut("Add")]
+    public async Task<IActionResult> AddProductToCart([FromBody] AddProductToCartRequest request)
     {
-        var stock = await _stockManager.GetStockForProductAsync(productId);
+        var stock = await _stockManager.GetStockForProductAsync(request.ProductId);
 
         if (stock is null)
         {
-            throw new ElementNotfFoundException("Product is not exist");
+            throw new ElementNotFoundException("Product is not exist");
         }
 
         if (stock.Count <= 0)
         {
-            return BadRequest("Product out of stock");
+            throw new ProductOutOfStockException();
         }
 
-        if (!_cacheService.TryGetCart(number, out var cart))
+        if (!_cacheService.TryGetSelfCheckout(request.SelfChecoutId, out var selfCheckout))
         {
-            throw new ElementNotfFoundException("Cart does not exist");
+            throw new SelfCheckoutFreeException();
+        }
+
+        if (!_cacheService.TryGetCart(request.CartNumber, out var cart))
+        {
+            throw new ElementNotFoundException("Cart does not exist");
+        }
+
+        if (selfCheckout.ActiveNumber != cart.Number)
+        {
+            // implement new exception
+            throw new Exception();
         }
 
         _cartService.AddProduct(cart, stock.Product);
 
         _cacheService.SetCart(cart);
+        _cacheService.SetSelfCheckout(selfCheckout);
+
+        return Ok("Success");
+    }
+
+    [HttpPut("Remove")]
+    public async Task<IActionResult> RemoveProduct([FromBody] RemoveProductFromCart request)
+    {
+        if (!_cacheService.TryGetSelfCheckout(request.SelfChecoutId, out var selfCheckout))
+        {
+            throw new SelfCheckoutFreeException();
+        }
+
+        if (!_cacheService.TryGetCart(request.CartNumber, out var cart))
+        {
+            throw new ElementNotFoundException("Cart does not exist");
+        }
+
+        if (selfCheckout.ActiveNumber != cart.Number)
+        {
+            // implement new exception
+            throw new Exception();
+        }
+
+        _cartService.RemoveProduct(cart, request.ProductId);
+
+        _cacheService.SetCart(cart);
+        _cacheService.SetSelfCheckout(selfCheckout);
 
         return Ok("Success");
     }
@@ -100,7 +139,7 @@ public class CartController : ControllerBase
 
         if (cart is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var response = _mapper.Map<CartResponse>(cart);

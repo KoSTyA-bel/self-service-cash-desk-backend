@@ -37,7 +37,7 @@ namespace Fedorakin.CashDesk.Data.Migrations
                     b.ToTable("CartProduct");
                 });
 
-            modelBuilder.Entity("Fedorakin.CashDesk.Logic.Models.Card", b =>
+            modelBuilder.Entity("Fedorakin.CashDesk.Data.Models.Card", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -45,9 +45,17 @@ namespace Fedorakin.CashDesk.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("CVV")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nchar(3)")
+                        .IsFixedLength();
+
                     b.Property<string>("Code")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(16)
+                        .HasColumnType("nchar(16)")
+                        .IsFixedLength();
 
                     b.Property<double>("Discount")
                         .HasColumnType("float");
@@ -65,7 +73,7 @@ namespace Fedorakin.CashDesk.Data.Migrations
                     b.ToTable("Cards");
                 });
 
-            modelBuilder.Entity("Fedorakin.CashDesk.Logic.Models.Cart", b =>
+            modelBuilder.Entity("Fedorakin.CashDesk.Data.Models.Cart", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -87,7 +95,7 @@ namespace Fedorakin.CashDesk.Data.Migrations
                     b.ToTable("Carts");
                 });
 
-            modelBuilder.Entity("Fedorakin.CashDesk.Logic.Models.Check", b =>
+            modelBuilder.Entity("Fedorakin.CashDesk.Data.Models.Check", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -128,7 +136,7 @@ namespace Fedorakin.CashDesk.Data.Migrations
                     b.ToTable("Checks");
                 });
 
-            modelBuilder.Entity("Fedorakin.CashDesk.Logic.Models.Product", b =>
+            modelBuilder.Entity("Fedorakin.CashDesk.Data.Models.Product", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -151,6 +159,10 @@ namespace Fedorakin.CashDesk.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("Photo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<double>("Price")
                         .HasColumnType("float");
 
@@ -162,7 +174,7 @@ namespace Fedorakin.CashDesk.Data.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("Fedorakin.CashDesk.Logic.Models.Profile", b =>
+            modelBuilder.Entity("Fedorakin.CashDesk.Data.Models.Profile", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -185,7 +197,7 @@ namespace Fedorakin.CashDesk.Data.Migrations
                     b.ToTable("Profiles");
                 });
 
-            modelBuilder.Entity("Fedorakin.CashDesk.Logic.Models.Role", b =>
+            modelBuilder.Entity("Fedorakin.CashDesk.Data.Models.Role", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -203,7 +215,7 @@ namespace Fedorakin.CashDesk.Data.Migrations
                     b.ToTable("Roles");
                 });
 
-            modelBuilder.Entity("Fedorakin.CashDesk.Logic.Models.SelfCheckout", b =>
+            modelBuilder.Entity("Fedorakin.CashDesk.Data.Models.SelfCheckout", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -225,7 +237,7 @@ namespace Fedorakin.CashDesk.Data.Migrations
                     b.ToTable("SelfCheckouts");
                 });
 
-            modelBuilder.Entity("Fedorakin.CashDesk.Logic.Models.Stock", b =>
+            modelBuilder.Entity("Fedorakin.CashDesk.Data.Models.Stock", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -249,22 +261,22 @@ namespace Fedorakin.CashDesk.Data.Migrations
 
             modelBuilder.Entity("CartProduct", b =>
                 {
-                    b.HasOne("Fedorakin.CashDesk.Logic.Models.Cart", null)
+                    b.HasOne("Fedorakin.CashDesk.Data.Models.Cart", null)
                         .WithMany()
                         .HasForeignKey("CartId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Fedorakin.CashDesk.Logic.Models.Product", null)
+                    b.HasOne("Fedorakin.CashDesk.Data.Models.Product", null)
                         .WithMany()
                         .HasForeignKey("ProductsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Fedorakin.CashDesk.Logic.Models.Card", b =>
+            modelBuilder.Entity("Fedorakin.CashDesk.Data.Models.Card", b =>
                 {
-                    b.HasOne("Fedorakin.CashDesk.Logic.Models.Profile", "Profile")
+                    b.HasOne("Fedorakin.CashDesk.Data.Models.Profile", "Profile")
                         .WithMany()
                         .HasForeignKey("ProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -273,20 +285,20 @@ namespace Fedorakin.CashDesk.Data.Migrations
                     b.Navigation("Profile");
                 });
 
-            modelBuilder.Entity("Fedorakin.CashDesk.Logic.Models.Check", b =>
+            modelBuilder.Entity("Fedorakin.CashDesk.Data.Models.Check", b =>
                 {
-                    b.HasOne("Fedorakin.CashDesk.Logic.Models.Card", "Card")
+                    b.HasOne("Fedorakin.CashDesk.Data.Models.Card", "Card")
                         .WithMany()
                         .HasForeignKey("CardId");
 
-                    b.HasOne("Fedorakin.CashDesk.Logic.Models.Cart", null)
+                    b.HasOne("Fedorakin.CashDesk.Data.Models.Cart", null)
                         .WithOne()
-                        .HasForeignKey("Fedorakin.CashDesk.Logic.Models.Check", "CartNumber")
-                        .HasPrincipalKey("Fedorakin.CashDesk.Logic.Models.Cart", "Number")
+                        .HasForeignKey("Fedorakin.CashDesk.Data.Models.Check", "CartNumber")
+                        .HasPrincipalKey("Fedorakin.CashDesk.Data.Models.Cart", "Number")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Fedorakin.CashDesk.Logic.Models.SelfCheckout", "SelfCheckout")
+                    b.HasOne("Fedorakin.CashDesk.Data.Models.SelfCheckout", "SelfCheckout")
                         .WithMany()
                         .HasForeignKey("SelfCheckoutId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -297,9 +309,9 @@ namespace Fedorakin.CashDesk.Data.Migrations
                     b.Navigation("SelfCheckout");
                 });
 
-            modelBuilder.Entity("Fedorakin.CashDesk.Logic.Models.Profile", b =>
+            modelBuilder.Entity("Fedorakin.CashDesk.Data.Models.Profile", b =>
                 {
-                    b.HasOne("Fedorakin.CashDesk.Logic.Models.Role", "Role")
+                    b.HasOne("Fedorakin.CashDesk.Data.Models.Role", "Role")
                         .WithMany("Profiles")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -308,18 +320,18 @@ namespace Fedorakin.CashDesk.Data.Migrations
                     b.Navigation("Role");
                 });
 
-            modelBuilder.Entity("Fedorakin.CashDesk.Logic.Models.Stock", b =>
+            modelBuilder.Entity("Fedorakin.CashDesk.Data.Models.Stock", b =>
                 {
-                    b.HasOne("Fedorakin.CashDesk.Logic.Models.Product", "Product")
+                    b.HasOne("Fedorakin.CashDesk.Data.Models.Product", "Product")
                         .WithOne()
-                        .HasForeignKey("Fedorakin.CashDesk.Logic.Models.Stock", "ProductId")
+                        .HasForeignKey("Fedorakin.CashDesk.Data.Models.Stock", "ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("Fedorakin.CashDesk.Logic.Models.Role", b =>
+            modelBuilder.Entity("Fedorakin.CashDesk.Data.Models.Role", b =>
                 {
                     b.Navigation("Profiles");
                 });

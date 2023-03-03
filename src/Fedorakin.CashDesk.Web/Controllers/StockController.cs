@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Fedorakin.CashDesk.Data.Models;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
+using Fedorakin.CashDesk.Web.Attributes;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Stock;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Fedorakin.CashDesk.Web.Exceptions;
@@ -14,15 +15,25 @@ namespace Fedorakin.CashDesk.Web.Controllers;
 public class StockController : ControllerBase
 {
     private readonly IStockManager _stockManager;
+    private readonly IProductManager _productManager;
     private readonly IDataStateManager _dataStateManager;
-    private readonly IValidator<Stock> _stockValidator;
+    private readonly IValidator<CreateStockRequest> _createStockRequestValidator;
+    private readonly IValidator<UpdateStockRequest> _updateStockRequestValidator;
     private readonly IMapper _mapper;
 
-    public StockController(IStockManager stockManager, IDataStateManager dataStateManager, IValidator<Stock> stockValidator, IMapper mapper)
+    public StockController(
+        IStockManager stockManager, 
+        IProductManager productManager, 
+        IDataStateManager dataStateManager, 
+        IValidator<CreateStockRequest> createStockRequestValidator, 
+        IValidator<UpdateStockRequest> updateStockRequestValidator, 
+        IMapper mapper)
     {
         _stockManager = stockManager ?? throw new ArgumentNullException(nameof(stockManager));
+        _productManager = productManager ?? throw new ArgumentNullException(nameof(productManager));
         _dataStateManager = dataStateManager ?? throw new ArgumentNullException(nameof(dataStateManager));
-        _stockValidator = stockValidator ?? throw new ArgumentNullException(nameof(stockValidator));
+        _createStockRequestValidator = createStockRequestValidator ?? throw new ArgumentNullException(nameof(createStockRequestValidator));
+        _updateStockRequestValidator = updateStockRequestValidator ?? throw new ArgumentNullException(nameof(updateStockRequestValidator));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
@@ -46,7 +57,7 @@ public class StockController : ControllerBase
 
         if (stocks.Count == 0)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var response = _mapper.Map<List<StockResponse>>(stocks);
@@ -61,7 +72,7 @@ public class StockController : ControllerBase
 
         if (stock is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var response = _mapper.Map<StockResponse>(stock);
@@ -70,11 +81,26 @@ public class StockController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Post([FromBody] CreateStockRequest request)
     {
-        var stock = _mapper.Map<Stock>(request);
+        _createStockRequestValidator.ValidateAndThrow(request);
 
-        _stockValidator.ValidateAndThrow(stock);
+        var product = await _productManager.GetByIdAsync(request.ProductId);
+
+        if (product is null)
+        {
+            throw new ElementNotFoundException();
+        }
+
+        var stock = await _stockManager.GetStockForProductAsync(request.ProductId);
+
+        if (stock is not null)
+        {
+            throw new StockAlreadyExsistsException();
+        }
+
+        stock = _mapper.Map<Stock>(request);
 
         await _stockManager.AddAsync(stock);
 
@@ -84,21 +110,23 @@ public class StockController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize]
     public async Task<IActionResult> Put(int id, [FromBody] UpdateStockRequest request)
     {
         var stock = await _stockManager.GetByIdAsync(id);
 
         if (stock is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
-        stock = _mapper.Map<Stock>(request);
-        stock.Id = id;
+        _updateStockRequestValidator.ValidateAndThrow(request);
 
-        _stockValidator.ValidateAndThrow(stock);
+        var mappedStock = _mapper.Map<Stock>(request);
+        mappedStock.Id = id;
+        mappedStock.ProductId = stock.ProductId;
 
-        await _stockManager.UpdateAsync(stock);
+        await _stockManager.UpdateAsync(mappedStock);
 
         await _dataStateManager.CommitChangesAsync();
 
@@ -106,6 +134,7 @@ public class StockController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize]
     public async Task<IActionResult> Delete(int id)
     {
         var stock = await _stockManager.GetByIdAsync(id);

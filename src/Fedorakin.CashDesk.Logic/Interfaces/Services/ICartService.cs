@@ -7,4 +7,6 @@ public interface ICartService
     void SetDateTime(Cart cart);
 
     void AddProduct(Cart cart, Product product);
+
+    void RemoveProduct(Cart cart, int productId);
 }

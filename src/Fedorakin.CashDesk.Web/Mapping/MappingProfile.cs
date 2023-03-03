@@ -1,4 +1,5 @@
 ﻿using Fedorakin.CashDesk.Data.Models;
+using Fedorakin.CashDesk.Web.Contracts.Requests.Auth;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Card;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Product;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Profile;
@@ -6,6 +7,9 @@ using Fedorakin.CashDesk.Web.Contracts.Requests.Role;
 using Fedorakin.CashDesk.Web.Contracts.Requests.SelfCheckout;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Stock;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
+using Fedorakin.CashDesk.Web.Models;
+using Fedorakin.CashDesk.Web.Settings;
+using System.Net;
 
 namespace Fedorakin.CashDesk.Web.Mapping;
 
@@ -67,6 +71,7 @@ public class MappingProfile : AutoMapper.Profile
             .ForMember(dest => dest.Weight, opt => opt.MapFrom(src => src.Weight))
             .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price))
             .ForMember(dest => dest.Barcode, opt => opt.MapFrom(src => src.Barcode))
+            .ForMember(dest => dest.Photo, opt => opt.MapFrom(src => src.Photo))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
 
         CreateMap<UpdateProductRequest, Product>()
@@ -74,6 +79,7 @@ public class MappingProfile : AutoMapper.Profile
             .ForMember(dest => dest.Weight, opt => opt.MapFrom(src => src.Weight))
             .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price))
             .ForMember(dest => dest.Barcode, opt => opt.MapFrom(src => src.Barcode))
+            .ForMember(dest => dest.Photo, opt => opt.MapFrom(src => src.Photo))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
 
         CreateMap<Product, ProductResponse>()
@@ -82,6 +88,7 @@ public class MappingProfile : AutoMapper.Profile
             .ForMember(dest => dest.Weight, opt => opt.MapFrom(src => src.Weight))
             .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price))
             .ForMember(dest => dest.Barcode, opt => opt.MapFrom(src => src.Barcode))
+            .ForMember(dest => dest.Photo, opt => opt.MapFrom(src => src.Photo))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
         #endregion
 
@@ -121,6 +128,7 @@ public class MappingProfile : AutoMapper.Profile
         CreateMap<CreateCardRequest, Card>()
             .ForMember(dest => dest.ProfileId, opt => opt.MapFrom(src => src.ProfileId))
             .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.Code))
+            .ForMember(dest => dest.CVV, opt => opt.MapFrom(src => src.CVV))
             .ForMember(dest => dest.Discount, opt => opt.MapFrom(src => src.Discount));
 
         CreateMap<UpdateCardRequest, Card>()
@@ -132,7 +140,14 @@ public class MappingProfile : AutoMapper.Profile
             .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.Code))
             .ForMember(dest => dest.Discount, opt => opt.MapFrom(src => src.Discount))
             .ForMember(dest => dest.Total, opt => opt.MapFrom(src => src.Total))
+            .ForMember(dest => dest.CVV, opt => opt.MapFrom(src => src.CVV))
             .ForMember(dest => dest.Profile, opt => opt.MapFrom(src => src.Profile));
+        #endregion
+
+        #region Authorization
+        CreateMap<AuthorizationRequest, AdminModel>()
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
+            .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.Password));
         #endregion
     }
 }

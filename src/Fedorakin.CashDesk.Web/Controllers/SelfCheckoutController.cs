@@ -2,10 +2,11 @@
 using Fedorakin.CashDesk.Data.Models;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Logic.Interfaces.Services;
-using Fedorakin.CashDesk.Logic.Services;
+using Fedorakin.CashDesk.Web.Attributes;
 using Fedorakin.CashDesk.Web.Contracts.Requests.SelfCheckout;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Fedorakin.CashDesk.Web.Exceptions;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
@@ -24,6 +25,7 @@ public class SelfCheckoutController : ControllerBase
     private readonly ISelfCheckoutService _selfCheckoutService;
     private readonly ICheckService _checkService;
     private readonly ICartService _cartService;
+    private readonly IValidator<PayRequest> _payRequestValidator;
     private readonly IMapper _mapper;
 
     public SelfCheckoutController(
@@ -34,9 +36,10 @@ public class SelfCheckoutController : ControllerBase
         IStockManager stockManager, 
         IDataStateManager dataStateManager, 
         ICacheService cache, 
-        ISelfCheckoutService selfCheckoutService,
-        ICheckService checkService,
-        ICartService cartService,
+        ISelfCheckoutService selfCheckoutService, 
+        ICheckService checkService, 
+        ICartService cartService, 
+        IValidator<PayRequest> payRequestValidator, 
         IMapper mapper)
     {
         _selfCheckoutManager = selfCheckoutManager ?? throw new ArgumentNullException(nameof(selfCheckoutManager));
@@ -49,6 +52,7 @@ public class SelfCheckoutController : ControllerBase
         _selfCheckoutService = selfCheckoutService ?? throw new ArgumentNullException(nameof(selfCheckoutService));
         _checkService = checkService ?? throw new ArgumentNullException(nameof(checkService));
         _cartService = cartService ?? throw new ArgumentNullException(nameof(cartService));
+        _payRequestValidator = payRequestValidator ?? throw new ArgumentNullException(nameof(payRequestValidator));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
@@ -69,10 +73,16 @@ public class SelfCheckoutController : ControllerBase
 
         if (selfCheckouts.Count == 0)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
-        _selfCheckoutService.InsertSelfCheckoutsFromCache(selfCheckouts);
+        for (int i = 0; i < selfCheckouts.Count; i++)
+        {
+            if (_cache.TryGetSelfCheckout(selfCheckouts[i].Id, out SelfCheckout selfCheckout))
+            {
+                selfCheckouts[i] = selfCheckout;
+            }
+        }
 
         var response = _mapper.Map<List<SelfCheckoutResponse>>(selfCheckouts);
 
@@ -89,7 +99,7 @@ public class SelfCheckoutController : ControllerBase
 
         if (selfCheckout is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         var response = _mapper.Map<SelfCheckoutResponse>(selfCheckout);
@@ -98,6 +108,7 @@ public class SelfCheckoutController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Post([FromBody] CreateSelfCheckoutRequest request)
     {
         var selfCheckout = _mapper.Map<SelfCheckout>(request);
@@ -112,11 +123,13 @@ public class SelfCheckoutController : ControllerBase
     [HttpPost("Pay")]
     public async Task<IActionResult> Pay([FromBody] PayRequest request)
     {
+        _payRequestValidator.ValidateAndThrow(request);
+
         _ = _cache.TryGetSelfCheckout(request.SelfCheckoutId, out var selfCheckout);
 
         if (selfCheckout is null)
         {
-            throw new ElementNotfFoundException("Can`t find self checkout");
+            throw new ElementNotFoundException("Can`t find self checkout");
         }
 
         if (selfCheckout.ActiveNumber == Guid.Empty || !selfCheckout.IsBusy)
@@ -133,7 +146,7 @@ public class SelfCheckoutController : ControllerBase
 
         if (cart is null)
         {
-            throw new ElementNotfFoundException("Can`t find cart");
+            throw new ElementNotFoundException("Can`t find cart");
         }
 
         if (cart.Products.Count == 0)
@@ -201,13 +214,14 @@ public class SelfCheckoutController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize]
     public async Task<IActionResult> Put(int id, [FromBody] UpdateSelfCheckoutRequest request)
     {
         var selfCheckout = await _selfCheckoutManager.GetByIdAsync(id);
 
         if (selfCheckout is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         selfCheckout = _mapper.Map<SelfCheckout>(request);
@@ -234,7 +248,7 @@ public class SelfCheckoutController : ControllerBase
 
         if (selfCheckout is null)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         if (!selfCheckout.IsActive)
@@ -260,12 +274,12 @@ public class SelfCheckoutController : ControllerBase
     {
         if (!_cache.TryGetSelfCheckout(request.Id, out var selfCheckout))
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
 
         if (selfCheckout.ActiveNumber != request.CartNumber)
         {
-            throw new ElementNotfFoundException();
+            throw new ElementNotFoundException();
         }
         
         _cache.RemoveSelfCheckout(request.Id);
@@ -274,13 +288,35 @@ public class SelfCheckoutController : ControllerBase
         return Ok();
     }
 
+    [HttpPut("FreeForUser/{id}")]
+    [Authorize]
+    public async Task<IActionResult> Free(int id)
+    {
+        if (!_cache.TryGetSelfCheckout(id, out var selfCheckout))
+        {
+            throw new ElementNotFoundException();
+        }
+
+        _cache.RemoveSelfCheckout(id);
+        _cache.RemoveCart(selfCheckout.ActiveNumber);
+
+        return Ok();
+    }
+
     [HttpDelete("{id}")]
+    [Authorize]
     public async Task<IActionResult> Delete(int id)
     {
         var selfCheckout = await _selfCheckoutManager.GetByIdAsync(id);
 
         if (selfCheckout is not null)
         {
+            if (_cache.TryGetSelfCheckout(id, out var cached))
+            {
+                _cache.RemoveSelfCheckout(id);
+                _cache.RemoveCart(cached.ActiveNumber);
+            }
+
             await _selfCheckoutManager.DeleteAsync(selfCheckout);
 
             await _dataStateManager.CommitChangesAsync();
