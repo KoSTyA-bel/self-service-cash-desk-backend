@@ -3,6 +3,7 @@ using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Fedorakin.CashDesk.Web.Exceptions;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.ObjectModel;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
 
@@ -57,7 +58,12 @@ public class CheckController : ControllerBase
             throw new InvalidPageSizeException();
         }
 
-        var checks = await _checkManager.GetRangeAsync(page, pageSize, card, cvv);
+        var checks = await _checkManager.GetRangeAsync(
+            page,
+            pageSize,
+            readCardCodes: new ReadOnlyCollection<string>(new List<string> { card }),
+            readCardCVVs: new ReadOnlyCollection<string>(new List<string> { cvv })
+        );
 
         if (checks.Count == 0)
         {

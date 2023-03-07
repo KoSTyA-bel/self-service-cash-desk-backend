@@ -9,7 +9,6 @@ using Fedorakin.CashDesk.Web.Interfaces.Utils;
 using Fedorakin.CashDesk.Web.Mapping;
 using Fedorakin.CashDesk.Web.Middlewares;
 using Fedorakin.CashDesk.Web.Settings;
-using Fedorakin.CashDesk.Web.Utils;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -27,8 +26,8 @@ var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 var configuration = builder.Configuration;
 var connectionString = configuration.GetConnectionString("CashDesk");
 
-builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection(nameof(JWTSettings)));
-builder.Services.AddSingleton<JWTSettings>(sp => sp.GetRequiredService<IOptions<JWTSettings>>().Value);
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
+builder.Services.AddSingleton<JwtSettings>(sp => sp.GetRequiredService<IOptions<JwtSettings>>().Value);
 
 builder.Services.AddDbContextPool<DataContext>(options => options.UseSqlServer(connectionString));
 
@@ -44,8 +43,6 @@ builder.Services.AddScoped<IDataStateManager, DataStateManager>();
 
 builder.Services.AddScoped<ITimeSpanProvider, TimeSpanProvider>();
 builder.Services.AddScoped<IDateTimeProvider, DateTimeProvider>();
-
-builder.Services.AddScoped<IJWTUtils, JWTUtils>();
 
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<ICacheService, CacheService>();

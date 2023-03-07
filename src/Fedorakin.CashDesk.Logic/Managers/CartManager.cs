@@ -1,7 +1,9 @@
 ﻿using Fedorakin.CashDesk.Data.Contexts;
 using Fedorakin.CashDesk.Data.Models;
+using Fedorakin.CashDesk.Logic.Constants;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.ObjectModel;
 
 namespace Fedorakin.CashDesk.Logic.Managers;
 
@@ -19,27 +21,49 @@ public class CartManager : ICartManager
         return _context.Carts.AddAsync(model).AsTask();
     }
 
-    public Task<Cart?> GetByIdAsync(int id)
+    public async Task<Cart?> GetByIdAsync(int id)
     {
-        return _context.Carts
-            .Include(x => x.Products)
-            .FirstOrDefaultAsync(x => x.Id == id);
+        var cards = await GetRangeAsync(readOnlyIds: new ReadOnlyCollection<int>(new List<int> { id }));
+
+        return cards.SingleOrDefault();
     }
 
-    public Task<Cart?> GetByNumberAsync(Guid number)
+    public async Task<Cart?> GetByNumberAsync(Guid number)
     {
-        return _context.Carts
-            .Include(x => x.Products)
-            .FirstOrDefaultAsync(x => x.Number == number);
+        var cards = await GetRangeAsync(readOnlyNumbers: new ReadOnlyCollection<Guid>(new List<Guid> { number }));
+
+        return cards.SingleOrDefault();
     }
 
-    public Task<List<Cart>> GetRangeAsync(int page, int pageSize)
+    public Task<List<Cart>> GetRangeAsync(
+        int? page = default,
+        int? pageSize = default,
+        IReadOnlyCollection<int>? readOnlyIds = default,
+        IReadOnlyCollection<Guid>? readOnlyNumbers = default,
+        params string[] includes)
     {
-        return _context.Carts
-            .AsNoTracking()
-            .Include(x => x.Products)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+        var query = _context.Carts.AsNoTracking();
+
+        if (readOnlyIds is not null && readOnlyIds.Any())
+        {
+            query = query.Where(cart => readOnlyIds!.Contains(cart.Id));
+        }
+
+        if (readOnlyNumbers is not null && readOnlyNumbers.Any())
+        {
+            query = query.Where(cart => readOnlyNumbers!.Contains(cart.Number));
+        }
+
+        if (includes.Contains(IncludeModels.CartNavigation.Products))
+        {
+            query = query.Include(cart => cart.Products);
+        }
+
+        if (page.HasValue && pageSize.HasValue)
+        {
+            query = query.Skip((page.Value - 1) * pageSize.Value).Take(pageSize.Value);
+        }
+
+        return query.ToListAsync();
     }
 }

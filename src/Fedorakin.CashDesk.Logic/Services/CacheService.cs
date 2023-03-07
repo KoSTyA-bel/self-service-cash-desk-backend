@@ -37,7 +37,7 @@ public class CacheService : ICacheService
     }
 
     public bool TryGetCart(Guid number, out Cart? cart)
-    {
+    {        
         return _cache.TryGetValue(number, out cart);
     }
 

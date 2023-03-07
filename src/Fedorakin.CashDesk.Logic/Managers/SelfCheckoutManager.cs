@@ -2,6 +2,7 @@
 using Fedorakin.CashDesk.Data.Models;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.ObjectModel;
 
 namespace Fedorakin.CashDesk.Logic.Managers;
 
@@ -24,18 +25,28 @@ public class SelfCheckoutManager : ISelfCheckoutManager
         return Task.FromResult(_context.SelfCheckouts.Remove(model));
     }
 
-    public Task<SelfCheckout?> GetByIdAsync(int id)
+    public async Task<SelfCheckout?> GetByIdAsync(int id)
     {
-        return _context.SelfCheckouts.FirstOrDefaultAsync(x => x.Id == id);
+        var selfCheckouts = await GetRangeAsync(readIds: new ReadOnlyCollection<int>(new List<int> { id}));
+
+        return selfCheckouts.SingleOrDefault();
     }
 
-    public Task<List<SelfCheckout>> GetRangeAsync(int page, int pageSize)
+    public Task<List<SelfCheckout>> GetRangeAsync(int? page = default, int? pageSize = default, IReadOnlyCollection<int>? readIds = default)
     {
-        return _context.SelfCheckouts
-            .AsNoTracking()
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+        var query = _context.SelfCheckouts.AsNoTracking();
+
+        if (readIds is not null && readIds.Any())
+        {
+            query = query.Where(selfCheckout => readIds!.Contains(selfCheckout.Id));
+        }
+
+        if (page.HasValue && pageSize.HasValue)
+        {
+            query = query.Skip((page.Value - 1) * pageSize.Value).Take(pageSize.Value);
+        }
+
+        return query.ToListAsync();
     }
 
     public async Task UpdateAsync(SelfCheckout model)

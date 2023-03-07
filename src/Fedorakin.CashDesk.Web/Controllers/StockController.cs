@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Fedorakin.CashDesk.Data.Models;
+using Fedorakin.CashDesk.Logic.Constants;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Web.Attributes;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Stock;
@@ -7,6 +8,7 @@ using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Fedorakin.CashDesk.Web.Exceptions;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.ObjectModel;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
 
@@ -53,7 +55,12 @@ public class StockController : ControllerBase
         name = name ?? string.Empty;
         barcode = barcode ?? string.Empty;
 
-        var stocks = await _stockManager.GetRangeAsync(page, pageSize, name, barcode);
+        var stocks = await _stockManager.GetRangeAsync(
+            page, 
+            pageSize, 
+            readNames: new ReadOnlyCollection<string>(new List<string> { name }),
+            readBarcodes: new ReadOnlyCollection<string>(new List<string> { barcode }),
+            includes: IncludeModels.StockNavigation.Product);
 
         if (stocks.Count == 0)
         {

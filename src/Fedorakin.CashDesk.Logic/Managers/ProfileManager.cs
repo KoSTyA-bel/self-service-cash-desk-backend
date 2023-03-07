@@ -1,7 +1,9 @@
 ﻿using Fedorakin.CashDesk.Data.Contexts;
 using Fedorakin.CashDesk.Data.Models;
+using Fedorakin.CashDesk.Logic.Constants;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.ObjectModel;
 
 namespace Fedorakin.CashDesk.Logic.Managers;
 
@@ -24,21 +26,37 @@ public class ProfileManager : IProfileManager
         return Task.FromResult(_context.Profiles.Remove(model));
     }
 
-    public Task<Profile?> GetByIdAsync(int id)
+    public async Task<Profile?> GetByIdAsync(int id)
     {
-        return _context.Profiles
-            .Include(x => x.Role)
-            .FirstOrDefaultAsync(x => x.Id == id);
+        var profiles = await GetRangeAsync(readIds: new ReadOnlyCollection<int>(new List<int> { id }));
+
+        return profiles.SingleOrDefault();
     }
 
-    public Task<List<Profile>> GetRangeAsync(int page, int pageSize)
+    public Task<List<Profile>> GetRangeAsync(
+        int? page = default, 
+        int? pageSize = default,
+        IReadOnlyCollection<int>? readIds = default,
+        params string[] includes)
     {
-        return _context.Profiles
-            .AsNoTracking()
-            .Include(x => x.Role)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+        var query = _context.Profiles.AsNoTracking();
+
+        if (readIds is not null && readIds.Any())
+        {
+            query = query.Where(profile => readIds!.Contains(profile.Id));
+        }
+
+        if (includes.Contains(IncludeModels.ProfileNavigation.Role))
+        {
+            query = query.Include(profile => profile.Role);
+        }
+
+        if (page.HasValue && pageSize.HasValue)
+        {
+            query = query.Skip((page.Value - 1) * pageSize.Value).Take(pageSize.Value);
+        }
+
+        return query.ToListAsync();
     }
 
     public async Task UpdateAsync(Profile model)

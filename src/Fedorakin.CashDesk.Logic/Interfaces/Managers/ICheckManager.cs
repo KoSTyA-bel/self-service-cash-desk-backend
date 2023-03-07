@@ -6,9 +6,13 @@ public interface ICheckManager
 {
     Task<Check?> GetByIdAsync(int id);
 
-    Task<List<Check>> GetRangeAsync(int page, int pageSize);
-
-    Task<List<Check>> GetRangeAsync(int page, int pageSize, string code, string cvv);
+    Task<List<Check>> GetRangeAsync(
+        int? page = default,
+        int? pageSize = default,
+        IReadOnlyCollection<int>? readCheckIds = default,
+        IReadOnlyCollection<string>? readCardCodes = default,
+        IReadOnlyCollection<string>? readCardCVVs = default,
+        params string[] includes);
 
     Task AddAsync(Check model);
 }

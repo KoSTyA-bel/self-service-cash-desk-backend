@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Fedorakin.CashDesk.Data.Models;
+using Fedorakin.CashDesk.Logic.Constants;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Web.Attributes;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Card;
@@ -7,6 +8,7 @@ using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Fedorakin.CashDesk.Web.Exceptions;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.ObjectModel;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
 
@@ -50,7 +52,7 @@ public class CardController : ControllerBase
             throw new InvalidPageSizeException();
         }
 
-        var cards = await _cardManager.GetRangeAsync(page, pageSize);
+        var cards = await _cardManager.GetRangeAsync(page, pageSize, includes: IncludeModels.CardNavigation.ProfileWithRole);
 
         if (cards.Count == 0)
         {
@@ -65,14 +67,14 @@ public class CardController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(int id)
     {
-        var card = await _cardManager.GetByIdAsync(id);
+        var cards = await _cardManager.GetRangeAsync(readOnlyIds: new ReadOnlyCollection<int>(new List<int> { id }));
 
-        if (card is null)
+        if (!cards.Any())
         {
             throw new ElementNotFoundException();
         }
 
-        var response = _mapper.Map<CardResponse>(card);
+        var response = _mapper.Map<CardResponse>(cards.First());
 
         return Ok(response);
     }
@@ -81,14 +83,14 @@ public class CardController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> Get(string code)
     {
-        var card = await _cardManager.GetByCodeAsync(code);
+        var cards = await _cardManager.GetRangeAsync(readOnlyCodes: new ReadOnlyCollection<string>(new List<string> { code }));
 
-        if (card is null)
+        if (!cards.Any())
         {
             throw new ElementNotFoundException();
         }
 
-        var response = _mapper.Map<CardResponse>(card);
+        var response = _mapper.Map<CardResponse>(cards.First());
 
         return Ok(response);
     }
@@ -105,14 +107,14 @@ public class CardController : ControllerBase
             throw new ElementNotFoundException("Profile does not exist");
         }
 
-        var card = await _cardManager.GetByProfileIdAsync(request.ProfileId);
+        var cards = await _cardManager.GetRangeAsync(readOnlyProfileIds: new ReadOnlyCollection<int>(new List<int> { request.ProfileId }));
 
-        if (card is not null)
+        if (!cards.Any())
         {
             throw new ProfileHasCardException();
         }
 
-        card = _mapper.Map<Card>(request);
+        var card = _mapper.Map<Card>(request);
 
         await _cardManager.AddAsync(card);
 
@@ -133,13 +135,14 @@ public class CardController : ControllerBase
             throw new ElementNotFoundException("Profile does not exist");
         }
 
-        var card = await _cardManager.GetByIdAsync(id);
+        var cards = await _cardManager.GetRangeAsync(readOnlyIds: new ReadOnlyCollection<int>(new List<int> { id }));
 
-        if (card is null)
+        if (!cards.Any())
         {
             throw new ElementNotFoundException();
         }
 
+        var card = cards.First();
         var newCard = _mapper.Map<Card>(request);
         newCard.Id = id;
         newCard.Total = card.Total;
@@ -155,11 +158,11 @@ public class CardController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var card = await _cardManager.GetByIdAsync(id);
+        var cards = await _cardManager.GetRangeAsync(readOnlyIds: new ReadOnlyCollection<int>(new List<int> { id }));
 
-        if (card is not null)
+        if (!cards.Any())
         {
-            await _cardManager.DeleteAsync(card);
+            await _cardManager.DeleteAsync(cards.First());
 
             await _dataStateManager.CommitChangesAsync();
         }

@@ -6,7 +6,13 @@ public interface IProductManager
 {
     Task<Product?> GetByIdAsync(int id);
 
-    Task<List<Product>> GetRangeAsync(int page, int pageSize, string name, string barcode);
+    Task<List<Product>> GetRangeAsync(
+        int? page = default, 
+        int? pageSize = default, 
+        IReadOnlyCollection<int>? readIds = default,
+        IReadOnlyCollection<string>? readNames = default,
+        IReadOnlyCollection<string>? readBarcode = default,
+        params string[] includes);
 
     Task AddAsync(Product model);
 

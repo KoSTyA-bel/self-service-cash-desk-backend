@@ -6,7 +6,10 @@ public interface IRoleManager
 {
     Task<Role?> GetByIdAsync(int id);
 
-    Task<List<Role>> GetRangeAsync(int page, int pageSize);
+    Task<List<Role>> GetRangeAsync(
+        int? page = default, 
+        int? pageSize = default,
+        IReadOnlyCollection<int>? readIds = default);
 
     Task AddAsync(Role model);
 

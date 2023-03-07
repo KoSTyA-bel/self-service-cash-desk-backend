@@ -6,7 +6,7 @@ public interface ISelfCheckoutManager
 {
     Task<SelfCheckout?> GetByIdAsync(int id);
 
-    Task<List<SelfCheckout>> GetRangeAsync(int page, int pageSize);
+    Task<List<SelfCheckout>> GetRangeAsync(int? page = default, int? pageSize = default, IReadOnlyCollection<int>? readIds = default);
 
     Task AddAsync(SelfCheckout model);
 

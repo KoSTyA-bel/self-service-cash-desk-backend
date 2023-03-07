@@ -8,6 +8,7 @@ using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Fedorakin.CashDesk.Web.Exceptions;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.ObjectModel;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
 
@@ -164,10 +165,11 @@ public class SelfCheckoutController : ControllerBase
 
         if (!string.IsNullOrEmpty(request.CardCode))
         {
-            var card = await _cardManager.GetByCodeAsync(request.CardCode);
+            var cards = await _cardManager.GetRangeAsync(readOnlyCodes: new ReadOnlyCollection<string>(new List<string> { request.CardCode }));
 
-            if (card is not null) 
+            if (cards.Any()) 
             {
+                var card = cards.First();
                 check.Card = card;
                 check.Total = check.Total * (100 - card?.Discount ?? 0) / 100;
                 check.Discount = check.Amount - check.Total;

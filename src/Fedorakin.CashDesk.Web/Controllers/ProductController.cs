@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Fedorakin.CashDesk.Web.Exceptions;
 using FluentValidation;
 using Fedorakin.CashDesk.Web.Attributes;
+using System.Collections.ObjectModel;
 
 namespace Fedorakin.CashDesk.Web.Controllers;
 
@@ -50,7 +51,11 @@ public class ProductController : ControllerBase
         name = name ?? string.Empty;
         barcode = barcode ?? string.Empty;
 
-        var products = await _productManager.GetRangeAsync(page, pageSize, name, barcode);
+        var products = await _productManager.GetRangeAsync(
+            page, 
+            pageSize, 
+            readNames: new ReadOnlyCollection<string>(new List<string> { name }),
+            readBarcode: new ReadOnlyCollection<string>(new List<string> { barcode }));
 
         if (products.Count == 0)
         {
