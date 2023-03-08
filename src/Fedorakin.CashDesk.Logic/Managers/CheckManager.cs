@@ -45,12 +45,12 @@ public class CheckManager : ICheckManager
 
         if (readCardCodes is not null && readCardCodes.Any())
         {
-            query = query.Where(check => readCardCodes!.Contains(check.Card.Code));
+            query = query.Where(check => readCardCodes!.Contains(check.Card!.Code));
         }
 
         if (readCardCVVs is not null && readCardCVVs.Any())
         {
-            query = query.Where(check => readCardCVVs!.Contains(check.Card.CVV));
+            query = query.Where(check => readCardCVVs!.Contains(check.Card!.CVV));
         }
 
         if (includes.Contains(IncludeModels.CheckNavigation.SelfCheckout))
@@ -67,15 +67,15 @@ public class CheckManager : ICheckManager
         {
             query = query
                 .Include(check => check.Card)
-                .ThenInclude(card => card.Profile);
+                .ThenInclude(card => card!.Profile);
         }
 
         if (includes.Contains(IncludeModels.CheckNavigation.CardWithProfileWithRole))
         {
             query = query
                 .Include(check => check.Card)
-                .ThenInclude(card => card.Profile)
-                .ThenInclude(profile => profile.Role);
+                .ThenInclude(card => card!.Profile)
+                .ThenInclude(profile => profile!.Role);
         }
 
         if (page.HasValue && pageSize.HasValue)

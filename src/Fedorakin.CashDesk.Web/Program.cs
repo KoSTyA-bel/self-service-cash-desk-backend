@@ -5,7 +5,6 @@ using Fedorakin.CashDesk.Logic.Interfaces.Services;
 using Fedorakin.CashDesk.Logic.Managers;
 using Fedorakin.CashDesk.Logic.Providers;
 using Fedorakin.CashDesk.Logic.Services;
-using Fedorakin.CashDesk.Web.Interfaces.Utils;
 using Fedorakin.CashDesk.Web.Mapping;
 using Fedorakin.CashDesk.Web.Middlewares;
 using Fedorakin.CashDesk.Web.Settings;
@@ -49,6 +48,7 @@ builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<ICheckService, CheckService>();
 builder.Services.AddScoped<ISelfCheckoutService, SelfCheckoutService>();
+builder.Services.AddScoped<IStatisticService, StatisticService>();
 
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
