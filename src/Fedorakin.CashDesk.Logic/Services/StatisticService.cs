@@ -13,12 +13,12 @@ public class StatisticService : IStatisticService
         var total = CalculateTotal(checks);
         var averageCheckPrice = CalculateAverageCheckPrice(checks);
         var ProductsCount = CalculateProductsCount(carts);
-        var dictuonary = FindCountOfProducts(carts);
+        var dictionary = FindCountOfProducts(carts);
 
         var statistic = new Statistic
         {
             AveragePrice = averageCheckPrice,
-            ProductsCount = dictuonary,
+            ProductsCount = dictionary,
             Total = total,
             TotalAmount = totalAmount,
             TotalDiscount = totalDiscount,
@@ -62,21 +62,21 @@ public class StatisticService : IStatisticService
         return sum;
     }
 
-    private Dictionary<Product, int>  FindCountOfProducts(IEnumerable<Cart> carts)
+    private Dictionary<string, int>  FindCountOfProducts(IEnumerable<Cart> carts)
     {
-        var dictionary = new Dictionary<Product, int>();
+        var dictionary = new Dictionary<string, int>();
 
         foreach (var cart in carts)
         {
             foreach (var product in cart.Products)
             {
-                if (!dictionary.TryGetValue(product, out var count))
+                if (!dictionary.TryGetValue(product.Name, out var count))
                 {
-                    dictionary.Add(product, 1);
+                    dictionary.Add(product.Name, 1);
                 }
                 else
                 {
-                    dictionary[product] = count + 1;
+                    dictionary[product.Name] = count + 1;
                 }
             }
         }

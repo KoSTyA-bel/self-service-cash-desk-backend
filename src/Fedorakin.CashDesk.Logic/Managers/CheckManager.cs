@@ -23,7 +23,9 @@ public class CheckManager : ICheckManager
 
     public async Task<Check?> GetByIdAsync(int id)
     {
-        var checks = await GetRangeAsync(readCheckIds: new ReadOnlyCollection<int>(new List<int> { id }));
+        var checks = await GetRangeAsync(
+            readCheckIds: new ReadOnlyCollection<int>(new List<int> { id }),
+            includes: new string[] {IncludeModels.CheckNavigation.SelfCheckout, IncludeModels.CheckNavigation.Card});
 
         return checks.SingleOrDefault();
     }

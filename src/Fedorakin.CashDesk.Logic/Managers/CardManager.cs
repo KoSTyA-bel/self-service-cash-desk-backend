@@ -33,7 +33,7 @@ public class CardManager : ICardManager
         IReadOnlyCollection<string>? readOnlyCodes = default,
         params string[] includes)
     {
-        var query = _context.Cards.AsNoTracking();
+        var query = _context.Cards.AsQueryable();
 
         if (readOnlyIds is not null && readOnlyIds.Any())
         {

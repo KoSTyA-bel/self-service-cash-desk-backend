@@ -1,4 +1,7 @@
 using Fedorakin.CashDesk.Data.Contexts;
+using Fedorakin.CashDesk.Data.Interfaces;
+using Fedorakin.CashDesk.Data.MailSenders;
+using Fedorakin.CashDesk.Data.Settings;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Logic.Interfaces.Providers;
 using Fedorakin.CashDesk.Logic.Interfaces.Services;
@@ -28,6 +31,9 @@ var connectionString = configuration.GetConnectionString("CashDesk");
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
 builder.Services.AddSingleton<JwtSettings>(sp => sp.GetRequiredService<IOptions<JwtSettings>>().Value);
 
+builder.Services.Configure<MailSenderSettings>(builder.Configuration.GetSection(nameof(MailSenderSettings)));
+builder.Services.AddSingleton<MailSenderSettings>(sp => sp.GetRequiredService<IOptions<MailSenderSettings>>().Value);
+
 builder.Services.AddDbContextPool<DataContext>(options => options.UseSqlServer(connectionString));
 
 builder.Services.AddScoped<ICartManager, CartManager>();
@@ -38,6 +44,7 @@ builder.Services.AddScoped<IStockManager, StockManager>();
 builder.Services.AddScoped<IRoleManager, RoleManager>();
 builder.Services.AddScoped<ISelfCheckoutManager, SelfCheckoutManager>();
 builder.Services.AddScoped<ICheckManager, CheckManager>();
+builder.Services.AddScoped<IMailManager, MailManager>();
 builder.Services.AddScoped<IDataStateManager, DataStateManager>();
 
 builder.Services.AddScoped<ITimeSpanProvider, TimeSpanProvider>();
@@ -48,6 +55,7 @@ builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<ICheckService, CheckService>();
 builder.Services.AddScoped<ISelfCheckoutService, SelfCheckoutService>();
+builder.Services.AddScoped<IMailSender, MailSender>();
 builder.Services.AddScoped<IStatisticService, StatisticService>();
 
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);

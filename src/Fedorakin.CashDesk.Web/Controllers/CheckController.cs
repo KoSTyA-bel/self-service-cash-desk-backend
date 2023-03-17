@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Fedorakin.CashDesk.Logic.Constants;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Web.Contracts.Responses;
 using Fedorakin.CashDesk.Web.Exceptions;
@@ -33,7 +34,7 @@ public class CheckController : ControllerBase
             throw new InvalidPageSizeException();
         }
 
-        var checks = await _checkManager.GetRangeAsync(page, pageSize);
+        var checks = await _checkManager.GetRangeAsync(page, pageSize, includes: new string[] { IncludeModels.CheckNavigation.Card, IncludeModels.CheckNavigation.SelfCheckout });
 
         if (checks.Count == 0)
         {
@@ -62,7 +63,8 @@ public class CheckController : ControllerBase
             page,
             pageSize,
             readCardCodes: new ReadOnlyCollection<string>(new List<string> { card }),
-            readCardCVVs: new ReadOnlyCollection<string>(new List<string> { cvv })
+            readCardCVVs: new ReadOnlyCollection<string>(new List<string> { cvv }),
+            includes: new string[] {IncludeModels.CheckNavigation.Card, IncludeModels.CheckNavigation.SelfCheckout }
         );
 
         if (checks.Count == 0)

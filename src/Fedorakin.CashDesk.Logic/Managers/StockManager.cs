@@ -43,7 +43,7 @@ public class StockManager : IStockManager
         IReadOnlyCollection<string>? readBarcodes = default, 
         params string[] includes)
     {
-        var query = _context.Stocks.AsNoTracking();
+        var query = _context.Stocks.AsQueryable();
 
         if (readIds is not null && readIds.Any())
         {
@@ -80,7 +80,9 @@ public class StockManager : IStockManager
 
     public async Task<Stock?> GetStockForProductAsync(int productId)
     {
-        var stocks = await GetRangeAsync(readProductIds: new ReadOnlyCollection<int>(new List<int> { productId }));
+        var stocks = await GetRangeAsync(
+            readProductIds: new ReadOnlyCollection<int>(new List<int> { productId }),
+            includes: IncludeModels.StockNavigation.Product);
 
         return stocks.SingleOrDefault();
     }

@@ -1,8 +1,8 @@
 ﻿using Fedorakin.CashDesk.Data.Models;
 
-namespace Fedorakin.CashDesk.Logic.Models;
+namespace Fedorakin.CashDesk.Web.Contracts.Responses;
 
-public class Statistic
+public class StatisticResponse
 {
     public double TotalDiscount { get; set; }
 
@@ -12,5 +12,7 @@ public class Statistic
 
     public double AveragePrice { get; set; }
 
-    public Dictionary<string, int>? ProductsCount { get; set; }
+    public IEnumerable<string> Products { get; set; }
+
+    public IEnumerable<int> Counts { get; set; }
 }
