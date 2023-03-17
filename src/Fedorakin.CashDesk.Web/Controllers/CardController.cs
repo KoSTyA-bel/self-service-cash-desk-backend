@@ -109,7 +109,7 @@ public class CardController : ControllerBase
 
         var cards = await _cardManager.GetRangeAsync(readOnlyProfileIds: new ReadOnlyCollection<int>(new List<int> { request.ProfileId }));
 
-        if (!cards.Any())
+        if (cards.Count != 0)
         {
             throw new ProfileHasCardException();
         }
@@ -160,7 +160,7 @@ public class CardController : ControllerBase
     {
         var cards = await _cardManager.GetRangeAsync(readOnlyIds: new ReadOnlyCollection<int>(new List<int> { id }));
 
-        if (!cards.Any())
+        if (cards.Any())
         {
             await _cardManager.DeleteAsync(cards.First());
 
