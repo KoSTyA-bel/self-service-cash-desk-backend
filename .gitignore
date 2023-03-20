@@ -348,4 +348,7 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+/src/Fedorakin.CashDesk.Web/appsettings.json
+/src/Fedorakin.CashDesk.Web/appsettings.Development.json
 /src/Fedorakin.CashDesk.Web/appsettings.json

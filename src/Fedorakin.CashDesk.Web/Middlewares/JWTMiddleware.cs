@@ -1,27 +1,58 @@
-﻿using Fedorakin.CashDesk.Web.Interfaces.Utils;
+﻿using Fedorakin.CashDesk.Web.Settings;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
-namespace Fedorakin.CashDesk.Web.Middlewares;
-
-public class JwtMiddleware
+namespace Fedorakin.CashDesk.Web.Middlewares
 {
-    private readonly RequestDelegate _next;
-
-    public JwtMiddleware(RequestDelegate next)
+    public class JwtMiddleware
     {
-        _next = next;
-    }
+        private readonly RequestDelegate _next;
+        private readonly JwtSettings _jwtSettings;
 
-    public async Task Invoke(HttpContext context, IJWTUtils jwtUtils)
-    {
-        var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-        var sls = context.Request.Headers.Authorization;
-        var admin = jwtUtils.ValidateToken(token);
-
-        if (admin is not null)
+        public JwtMiddleware(RequestDelegate next, IOptions<JwtSettings> jwtSettings)
         {
-            context.Items["AdminName"] = admin.Name;
+            _next = next;
+            _jwtSettings = jwtSettings.Value;
         }
 
-        await _next(context);
+        public async Task Invoke(HttpContext context)
+        {
+            var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+
+            if (token is not null)
+            {
+                AttachUserToContext(context, token);
+            }
+
+            await _next(context);
+        }
+
+        private void AttachUserToContext(HttpContext context, string token)
+        {
+            try
+            {
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var key = Encoding.ASCII.GetBytes(_jwtSettings.Key);
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ClockSkew = TimeSpan.Zero
+                }, out SecurityToken validatedToken);
+
+                var jwtToken = (JwtSecurityToken)validatedToken;
+
+                var adminName = jwtToken.Claims.Where(x => x.Type == JwtRegisteredClaimNames.UniqueName).First().Value;
+                context.Items["AdminName"] = adminName;
+            }
+            catch
+            {
+                // do nothing if jwt validation fails
+            }
+        }
     }
 }

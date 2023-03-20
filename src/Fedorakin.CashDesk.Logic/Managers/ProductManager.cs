@@ -1,7 +1,10 @@
 ﻿using Fedorakin.CashDesk.Data.Contexts;
 using Fedorakin.CashDesk.Data.Models;
+using Fedorakin.CashDesk.Logic.Constants;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace Fedorakin.CashDesk.Logic.Managers;
 
@@ -24,19 +27,44 @@ public class ProductManager : IProductManager
         return Task.FromResult(_context.Products.Remove(model));
     }
 
-    public Task<Product?> GetByIdAsync(int id)
+    public async Task<Product?> GetByIdAsync(int id)
     {
-        return _context.Products.AsNoTracking().FirstOrDefaultAsync(x => x.Id== id);
+        var products = await GetRangeAsync(readIds: new ReadOnlyCollection<int>(new List<int> { id }));
+
+        return products.SingleOrDefault();
     }
 
-    public Task<List<Product>> GetRangeAsync(int page, int pageSize, string name, string barcode)
+    public Task<List<Product>> GetRangeAsync(
+        int? page = default, 
+        int? pageSize = default, 
+        IReadOnlyCollection<int>? readIds = default, 
+        IReadOnlyCollection<string>? readNames = default, 
+        IReadOnlyCollection<string>? readBarcode = default, 
+        params string[] includes)
     {
-        return _context.Products
-            .AsNoTracking()
-            .Where(x => x.Name.Contains(name) && x.Barcode.Contains(barcode))
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+        var query = _context.Products.AsNoTracking();
+
+        if (readIds is not null && readIds.Any())
+        {
+            query = query.Where(product => readIds!.Contains(product.Id));
+        }
+
+        if (readNames is not null && readNames.Any())
+        {
+            query = query.Where(product => product.Name.Contains(readNames.First()));
+        }
+
+        if (readBarcode is not null && readBarcode.Any())
+        {
+            query = query.Where(product => product.Barcode.Contains(readBarcode.First()));
+        }
+
+        if (page.HasValue && pageSize.HasValue)
+        {
+            query = query.Skip((page.Value - 1) * pageSize.Value).Take(pageSize.Value);
+        }
+
+        return query.ToListAsync();
     }
 
     public async Task UpdateAsync(Product model)

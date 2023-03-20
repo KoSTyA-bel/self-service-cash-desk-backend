@@ -4,13 +4,13 @@ namespace Fedorakin.CashDesk.Logic.Interfaces.Managers;
 
 public interface ICardManager
 {
-    Task<Card?> GetByIdAsync(int id);
-
-    Task<Card?> GetByProfileIdAsync(int id);
-
-    Task<Card?> GetByCodeAsync(string code);
-
-    Task<List<Card>> GetRangeAsync(int page, int pageSize);
+    Task<List<Card>> GetRangeAsync(
+        int? page = default,
+        int? pageSize = default,
+        IReadOnlyCollection<int>? readOnlyIds = default,
+        IReadOnlyCollection<int>? readOnlyProfileIds = default,
+        IReadOnlyCollection<string>? readOnlyCodes = default,
+        params string[] includes);
 
     Task AddAsync(Card model);
 

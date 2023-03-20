@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fedorakin.CashDesk.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230221174705_init")]
+    [Migration("20230317033253_init")]
     partial class init
     {
         /// <inheritdoc />

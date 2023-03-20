@@ -1,4 +1,5 @@
 ﻿using Fedorakin.CashDesk.Data.Models;
+using Fedorakin.CashDesk.Logic.Models;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Auth;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Card;
 using Fedorakin.CashDesk.Web.Contracts.Requests.Product;
@@ -148,6 +149,16 @@ public class MappingProfile : AutoMapper.Profile
         CreateMap<AuthorizationRequest, AdminModel>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
             .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.Password));
+        #endregion
+
+        #region Statistic
+        CreateMap<Statistic, StatisticResponse>()
+            .ForMember(dest => dest.Total, opt => opt.MapFrom(src => src.Total))
+            .ForMember(dest => dest.Products, opt => opt.MapFrom(src => src.ProductsCount.Keys))
+            .ForMember(dest => dest.Counts, opt => opt.MapFrom(src => src.ProductsCount.Values))
+            .ForMember(dest => dest.AveragePrice, opt => opt.MapFrom(src => src.AveragePrice))
+            .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src => src.TotalAmount))
+            .ForMember(dest => dest.TotalDiscount, opt => opt.MapFrom(src => src.TotalDiscount));
         #endregion
     }
 }

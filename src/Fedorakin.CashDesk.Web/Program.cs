@@ -1,15 +1,16 @@
 using Fedorakin.CashDesk.Data.Contexts;
+using Fedorakin.CashDesk.Data.Interfaces;
+using Fedorakin.CashDesk.Data.MailSenders;
+using Fedorakin.CashDesk.Data.Settings;
 using Fedorakin.CashDesk.Logic.Interfaces.Managers;
 using Fedorakin.CashDesk.Logic.Interfaces.Providers;
 using Fedorakin.CashDesk.Logic.Interfaces.Services;
 using Fedorakin.CashDesk.Logic.Managers;
 using Fedorakin.CashDesk.Logic.Providers;
 using Fedorakin.CashDesk.Logic.Services;
-using Fedorakin.CashDesk.Web.Interfaces.Utils;
 using Fedorakin.CashDesk.Web.Mapping;
 using Fedorakin.CashDesk.Web.Middlewares;
 using Fedorakin.CashDesk.Web.Settings;
-using Fedorakin.CashDesk.Web.Utils;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -27,8 +28,11 @@ var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 var configuration = builder.Configuration;
 var connectionString = configuration.GetConnectionString("CashDesk");
 
-builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection(nameof(JWTSettings)));
-builder.Services.AddSingleton<JWTSettings>(sp => sp.GetRequiredService<IOptions<JWTSettings>>().Value);
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
+builder.Services.AddSingleton<JwtSettings>(sp => sp.GetRequiredService<IOptions<JwtSettings>>().Value);
+
+builder.Services.Configure<MailSenderSettings>(builder.Configuration.GetSection(nameof(MailSenderSettings)));
+builder.Services.AddSingleton<MailSenderSettings>(sp => sp.GetRequiredService<IOptions<MailSenderSettings>>().Value);
 
 builder.Services.AddDbContextPool<DataContext>(options => options.UseSqlServer(connectionString));
 
@@ -40,18 +44,19 @@ builder.Services.AddScoped<IStockManager, StockManager>();
 builder.Services.AddScoped<IRoleManager, RoleManager>();
 builder.Services.AddScoped<ISelfCheckoutManager, SelfCheckoutManager>();
 builder.Services.AddScoped<ICheckManager, CheckManager>();
+builder.Services.AddScoped<IMailManager, MailManager>();
 builder.Services.AddScoped<IDataStateManager, DataStateManager>();
 
 builder.Services.AddScoped<ITimeSpanProvider, TimeSpanProvider>();
 builder.Services.AddScoped<IDateTimeProvider, DateTimeProvider>();
-
-builder.Services.AddScoped<IJWTUtils, JWTUtils>();
 
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<ICheckService, CheckService>();
 builder.Services.AddScoped<ISelfCheckoutService, SelfCheckoutService>();
+builder.Services.AddScoped<IMailSender, MailSender>();
+builder.Services.AddScoped<IStatisticService, StatisticService>();
 
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 

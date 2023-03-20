@@ -2,7 +2,7 @@
 
 namespace Fedorakin.CashDesk.Web.Settings;
 
-public class JWTSettings
+public class JwtSettings
 {
     public required string Key { get; set; }
 
